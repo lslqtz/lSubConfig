@@ -1,0 +1,43 @@
+mixed-port: 7890
+allow-lan: false
+bind-address: '*'
+mode: rule
+log-level: warning
+external-controller: '127.0.0.1:9090'
+
+dns:
+    enable: true
+    ipv6: true
+    listen: '0.0.0.0:53'
+    use-hosts: true
+    nameserver: ['https://cloudflare-dns.com/dns-query']
+    fallback: ['https://dns.google/dns-query']
+    fallback-filter: { geoip: true, ipcidr: [240.0.0.0/4] }
+
+proxies:
+    ----lPROXIES----
+
+proxy-groups:
+    - { name: '🇺🇳全局出国节点', type: select, proxies: ['♾️自动出国节点', DIRECT, ----lPROXIESNAME----], url: 'http://www.gstatic.com/generate_204', lazy: true, timeout: 5, interval: 3600 }
+    - { name: '🇨🇳全局回国节点', type: select, proxies: [DIRECT, ----lPROXIESNAME_CN----], url: 'http://baidu.com', lazy: true, timeout: 5, interval: 3600 }
+    - { name: '♾️自动出国节点', type: url-test, proxies: [----lPROXIESNAME_LOWLATENCY----], url: 'http://www.gstatic.com/generate_204', lazy: true, timeout: 5, interval: 3600, tolerance: 300 }
+    - { name: '🇺🇳海外被墙网站', type: select, proxies: ['🇺🇳全局出国节点', DIRECT, '♾️自动出国节点', ----lPROXIESNAME----] }
+    - { name: '⚓️其它海外流量', type: select, proxies: ['🇺🇳全局出国节点', DIRECT, '♾️自动出国节点', ----lPROXIESNAME----] }
+    - { name: '🇺🇳海外流媒体', type: select, proxies: ['🇺🇳全局出国节点', DIRECT, '♾️自动出国节点', ----lPROXIESNAME----] }
+    - { name: '🇨🇳国内全局', type: select, proxies: [DIRECT, '🇨🇳全局回国节点'] }
+    - { name: '🇨🇳国内流媒体', type: select, proxies: [DIRECT, '🇨🇳全局回国节点'] }
+    - { name: '🇨🇳IP属地分流', type: select, proxies: [DIRECT, '🇨🇳全局回国节点', '♾️自动出国节点', ----lPROXIESNAME----] }
+
+rules:
+    - 'DST-PORT,22,DIRECT'
+    - 'IP-CIDR,192.168.0.0/16,DIRECT,no-resolve'
+    - 'IP-CIDR,10.0.0.0/8,DIRECT,no-resolve'
+    - 'IP-CIDR,172.16.0.0/12,DIRECT,no-resolve'
+    - 'IP-CIDR,127.0.0.0/8,DIRECT,no-resolve'
+    - 'IP-CIDR,100.64.0.0/10,DIRECT,no-resolve'
+    - 'IP-CIDR6,::1/128,DIRECT,no-resolve'
+    - 'IP-CIDR6,fc00::/7,DIRECT,no-resolve'
+    - 'IP-CIDR6,fe80::/10,DIRECT,no-resolve'
+    - 'IP-CIDR6,fd00::/8,DIRECT,no-resolve'
+    - 'GEOIP,CN,🇨🇳国内全局'
+    - 'MATCH,⚓️其它海外流量'
