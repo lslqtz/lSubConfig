@@ -162,6 +162,9 @@ foreach (SubscribeURL as $subscribeURL) {
 	}
 }
 $proxies = trim($proxies);
+if (empty($proxies)) {
+	die();
+}
 $proxiesNameStr = implode(', ', $proxiesName);
 $proxiesNameLowLatencyStr = implode(', ', $proxiesNameLowLatency);
 $proxiesNameCNStr = implode(', ', $proxiesNameCN);
