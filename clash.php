@@ -9,6 +9,7 @@ define('SubscribeBaseRuleProxiesNameLowLatencyTag', '----lPROXIESNAME_LOWLATENCY
 define('SubscribeBaseRuleProxiesNameLowLatencyMatchList', array('🇭🇰', 'HK', '香港', '🇹🇼', 'TW', '台湾', '🇯🇵', 'JP', '日本', '🇰🇷', 'KR', '韩国'));
 define('SubscribeBaseRuleProxiesNameCNTag', '----lPROXIESNAME_CN----');
 define('SubscribeCache', 3600); // Seconds or null.
+define('SubscribeIgnoreKeyword', array('套餐', '到期', '流量', '重置'));
 define('SubscribeUserInfoReturn', true);
 define('SubscribeUserInfoReturnAll', false);
 define('DefaultFlag', 'clash');
@@ -126,10 +127,15 @@ foreach (SubscribeURL as $subscribeURL) {
 						}
 						$subscribeLine = preg_replace('/password: ?[\'"]?(.*?)[\'"]?([, }])/', "password: '$1', auth: '$1'$2", $subscribeLine, 1);
 					}
+					$tmpProxiesName = trim($proxiesNameMatches[1], ",' ");
+					foreach (SubscribeIgnoreKeyword as $subscribeIgnoreKeyword) {
+						if (stripos($tmpProxiesName, $subscribeIgnoreKeyword) !== false) {
+							continue 2;
+						}
+					}
 					$subscribeLine = trim($subscribeLine);
 					//$subscribeLine = preg_replace('/flow: ?xtls-rprx-vision,? ?/', '', $subscribeLine, 1);
 					//$subscribeLine = str_replace('xtls-rprx-vision', 'xtls-rprx-origin', $subscribeLine);
-					$tmpProxiesName = trim($proxiesNameMatches[1], ",' ");
 					if (stripos($tmpProxiesName, '🇨🇳') === false && stripos($tmpProxiesName, 'CN') === false && stripos($tmpProxiesName, '中国') === false) {
 						$proxiesName[] = "'{$tmpProxiesName}'";
 						if ($reqFlag === 'stash' && stripos($subscribeLine, 'benchmark-url:') === false && stripos($subscribeLine, 'benchmark-timeout:') === false ) {
