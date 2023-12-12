@@ -9,6 +9,8 @@ define('SubscribeBaseRuleProxiesNameLowLatencyTag', '----lPROXIESNAME_LOWLATENCY
 define('SubscribeBaseRuleProxiesNameLowLatencyMatchList', array('🇭🇰', 'HK', '香港', '🇹🇼', 'TW', '台湾', '🇯🇵', 'JP', '日本', '🇰🇷', 'KR', '韩国'));
 define('SubscribeBaseRuleProxiesNameCNTag', '----lPROXIESNAME_CN----');
 define('SubscribeCache', 3600); // Seconds or null.
+define('SubscribeUserInfoReturn', true);
+define('SubscribeUserInfoReturnAll', false);
 define('DefaultFlag', 'clash');
 define('SupportFlag', array('clash', 'meta', 'stash'));
 define('RewriteFlag', array('stash' => 'meta')); // Support first before rewriting.
@@ -17,13 +19,6 @@ define('SubscribeURL', array('https://example.com/api/v1/client/subscribe?token=
 function ParseDomain(string $url): string {
 	$parseURL = parse_url(trim($url));
 	return trim((isset($parseURL['host']) ? $parseURL['host'] : array_shift(explode('/', $parseURL['path'], 2))));
-}
-function GetRuleDomain(string $rule): ?string {
-	$ruleExplode = explode(',', $rule);
-	if (count($ruleExplode) < 2) {
-		return null;
-	}
-	return trim($ruleExplode[1]);
 }
 function GetHTTPHeader(string $name): ?string {
 	global $http_response_header;
@@ -91,7 +86,7 @@ foreach (SubscribeURL as $subscribeURL) {
 	}
 	if (!$useCache) {
 		$subscribeUserInfo = GetHTTPHeader('subscription-userinfo');
-		if (!empty($subscribeUserInfo) && $subscribeURLCount === 1) {
+		if (SubscribeUserInfoReturn && !empty($subscribeUserInfo) && (SubscribeUserInfoReturnAll || $subscribeURLCount === 1)) {
 			header($subscribeUserInfo);
 		}
 		if ($canCache) {
@@ -110,7 +105,7 @@ foreach (SubscribeURL as $subscribeURL) {
 		if (empty($subscribeLine)) {
 			continue;
 		}
-		if ($firstLine && $useCache && $subscribeURLCount === 1 && ($subscribeUserInfo = stristr($subscribeLine, 'subscription-userinfo')) !== false) {
+		if (SubscribeUserInfoReturn && $firstLine && $useCache && (SubscribeUserInfoReturnAll || $subscribeURLCount === 1) && ($subscribeUserInfo = stristr($subscribeLine, 'subscription-userinfo')) !== false) {
 			header($subscribeUserInfo);
 			continue;
 		}
