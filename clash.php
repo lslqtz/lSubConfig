@@ -120,17 +120,21 @@ foreach (SubscribeURL as $subscribeURL) {
 		} else if ($detectProxies === -1) {
 			if (stripos($subscribeLine, $ruleSpaceIndentStr) === 0) {
 				if (preg_match('/^.*?name:(.*?),/', $subscribeLine, $proxiesNameMatches) !== false && count($proxiesNameMatches) > 1) {
-					if ($reqFlag === 'stash' && stripos($subscribeLine, 'xtls-rprx-vision') !== false) {
-						continue;
+					if ($reqFlag === 'stash') {
+						if (stripos($subscribeLine, 'xtls-rprx-vision') !== false) {
+							continue;
+						}
+						$subscribeLine = preg_replace('/password: ?[\'"]?(.*?)[\'"]?([, }])/', "password: '$1', auth: '$1'$2", $subscribeLine, 1);
 					}
 					$subscribeLine = trim($subscribeLine);
-					$subscribeLine = preg_replace('/password: ?[\'"]?(.*?)[\'"]?([, }])/', "password: '$1', auth: '$1'$2", $subscribeLine, 1);
 					//$subscribeLine = preg_replace('/flow: ?xtls-rprx-vision,? ?/', '', $subscribeLine, 1);
 					//$subscribeLine = str_replace('xtls-rprx-vision', 'xtls-rprx-origin', $subscribeLine);
-					$proxies .= '    ' . $subscribeLine . "\n";
 					$tmpProxiesName = trim($proxiesNameMatches[1], ",' ");
 					if (stripos($tmpProxiesName, '🇨🇳') === false && stripos($tmpProxiesName, 'CN') === false && stripos($tmpProxiesName, '中国') === false) {
 						$proxiesName[] = "'{$tmpProxiesName}'";
+						if ($reqFlag === 'stash' && stripos($subscribeLine, 'benchmark-url:') === false && stripos($subscribeLine, 'benchmark-timeout:') === false ) {
+							$subscribeLine = preg_replace('/ ?} *$/', ", benchmark-timeout: 5, benchmark-url: 'http://www.gstatic.com/generate_204' }", $subscribeLine, 1);
+						}
 						foreach (SubscribeBaseRuleProxiesNameLowLatencyMatchList as $lowLatencyMatch) {
 							if (stripos($tmpProxiesName, $lowLatencyMatch) !== false) {
 								$proxiesNameLowLatency[] = "'{$tmpProxiesName}'";
@@ -139,7 +143,11 @@ foreach (SubscribeURL as $subscribeURL) {
 						}
 					} else {
 						$proxiesNameCN[] = "'{$tmpProxiesName}'";
+						if ($reqFlag === 'stash' && stripos($subscribeLine, 'benchmark-url:') === false && stripos($subscribeLine, 'benchmark-timeout:') === false ) {
+							$subscribeLine = preg_replace('/ ?} *$/', ", benchmark-timeout: 5, benchmark-url: 'http://baidu.com' }", $subscribeLine, 1);
+						}
 					}
+					$proxies .= '    ' . $subscribeLine . "\n";
 				}
 			} else if (stripos($subscribeLine, ':') !== false) {
 				$detectProxies = 0;
