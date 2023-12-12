@@ -18,15 +18,15 @@ proxies:
     ----lPROXIES----
 
 proxy-groups:
-    - { name: '🇺🇳全局出国节点', type: select, proxies: ['♾️自动出国节点', DIRECT, ----lPROXIESNAME----], url: 'http://www.gstatic.com/generate_204', lazy: true, timeout: 5, interval: 3600 }
-    - { name: '🇨🇳全局回国节点', type: select, proxies: [DIRECT, ----lPROXIESNAME_CN----], url: 'http://baidu.com', lazy: true, timeout: 5, interval: 3600 }
-    - { name: '♾️自动出国节点', type: url-test, proxies: [----lPROXIESNAME_LOWLATENCY----], url: 'http://www.gstatic.com/generate_204', lazy: true, timeout: 5, interval: 3600, tolerance: 300 }
-    - { name: '🇺🇳海外被墙网站', type: select, proxies: ['🇺🇳全局出国节点', DIRECT, '♾️自动出国节点', ----lPROXIESNAME----] }
-    - { name: '⚓️其它海外流量', type: select, proxies: ['🇺🇳全局出国节点', DIRECT, '♾️自动出国节点', ----lPROXIESNAME----] }
-    - { name: '🇺🇳海外流媒体', type: select, proxies: ['🇺🇳全局出国节点', DIRECT, '♾️自动出国节点', ----lPROXIESNAME----] }
+    - { name: '🇺🇳全局出国节点', type: select, proxies: ['♾️自动出国节点', DIRECT, ----lPROXIESNAME----], url: 'http://www.gstatic.com/generate_204', lazy: true, timeout: 5, interval: 900 }
+    - { name: '🇨🇳全局回国节点', type: select, proxies: [DIRECT, ----lPROXIESNAME_CN----], url: 'http://baidu.com', lazy: true, timeout: 5, interval: 900 }
+    - { name: '♾️自动出国节点', type: url-test, proxies: [----lPROXIESNAME_LOWLATENCY----], url: 'http://www.gstatic.com/generate_204', lazy: true, timeout: 5, interval: 900, tolerance: 300 }
+    - { name: '🇺🇳海外被墙网站', type: select, proxies: ['🇺🇳全局出国节点', DIRECT, '♾️自动出国节点', ----lPROXIESNAME----], url: 'http://www.gstatic.com/generate_204', lazy: true, timeout: 5, interval: 900 }
+    - { name: '⚓️其它海外流量', type: select, proxies: ['🇺🇳全局出国节点', DIRECT, '♾️自动出国节点', ----lPROXIESNAME----], url: 'http://www.gstatic.com/generate_204', lazy: true, timeout: 5, interval: 900 }
+    - { name: '🇺🇳海外流媒体', type: select, proxies: ['🇺🇳全局出国节点', DIRECT, '♾️自动出国节点', ----lPROXIESNAME----], url: 'http://www.gstatic.com/generate_204', lazy: true, timeout: 5, interval: 900 }
     - { name: '🇨🇳国内全局', type: select, proxies: [DIRECT, '🇨🇳全局回国节点'] }
     - { name: '🇨🇳国内流媒体', type: select, proxies: [DIRECT, '🇨🇳全局回国节点'] }
-    - { name: '🇨🇳IP属地分流', type: select, proxies: [DIRECT, '🇨🇳全局回国节点', '♾️自动出国节点', ----lPROXIESNAME----] }
+    - { name: '🇨🇳IP属地分流', type: select, proxies: [DIRECT, '🇨🇳全局回国节点', '♾️自动出国节点', ----lPROXIESNAME----], url: 'http://www.gstatic.com/generate_204', lazy: true, timeout: 5, interval: 900 }
 
 rules:
     - 'DST-PORT,22,DIRECT'
