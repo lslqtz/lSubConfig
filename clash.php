@@ -3,6 +3,7 @@ ini_set('user_agent', 'lSubConfig/1.0');
 ini_set('default_socket_timeout', '30');
 define('SubscribeKey', array('DefaultSubscribeKey'));
 define('SubscribeBaseRule', 'clash_baserule.yml');
+define('SubscribeBaseRuleSpace1IndentStr', '    ');
 define('SubscribeBaseRuleProxiesTag', '----lPROXIES----');
 define('SubscribeBaseRuleProxiesNameTag', '----lPROXIESNAME----');
 define('SubscribeBaseRuleProxiesNameLowLatencyTag', '----lPROXIESNAME_LOWLATENCY----');
@@ -34,6 +35,66 @@ function GetHTTPHeader(string $name): ?string {
 	}
 	return null;
 }
+function NameFilter(array $value): bool {
+	if (!isset($value['name'])) {
+		return false;
+	}
+	foreach (SubscribeIgnoreKeyword as $subscribeIgnoreKeyword) {
+		if (stripos($value['name'], $subscribeIgnoreKeyword) !== false) {
+			return false;
+		}
+	}
+	return true;
+}
+function TypeFilter(array $value): bool {
+	global $useReqFlag;
+	if ($useReqFlag === 'clash') {
+		if (isset($value['type']) && stripos($value['type'], 'vless') !== false) {
+			return false;
+		}
+	}
+	return true;
+}
+function FlowFilter(array $value): bool {
+	global $reqFlag;
+	if ($reqFlag === 'stash') {
+		if (isset($value['flow']) && stripos($value['flow'], 'xtls-rprx-vision') !== false) {
+			return false;
+		}
+	}
+	return true;
+}
+function AddProxyNameToArr(array &$value) {
+	global $reqFlag, $proxiesName, $proxiesNameLowLatency, $proxiesNameCN;
+	if ($reqFlag === 'stash') {
+		$issetPassword = (isset($value['password']));
+		$issetAuth = (isset($value['auth']));
+		if ($issetPassword && !$issetAuth) {
+			$value['auth'] = $value['password'];
+		} else if ($issetAuth && !$issetPassword) {
+			$value['password'] = $value['auth'];
+		}
+	}
+	foreach (SubscribeBaseRuleProxiesNameLowLatencyMatchList as $lowLatencyMatch) {
+		if (stripos($value['name'], $lowLatencyMatch) !== false) {
+			$proxiesNameLowLatency[] = $value['name'];
+			break;
+		}
+	}
+	if (in_array($value['name'], $proxiesNameLowLatency) || (stripos($value['name'], '🇨🇳') === false && stripos($value['name'], 'CN') === false && stripos($value['name'], '中国') === false)) {
+		$proxiesName[] = $value['name'];
+		if ($reqFlag === 'stash' && !isset($value['benchmark-timeout'], $value['benchmark-url'])) {
+			$value['benchmark-timeout'] = 5;
+			$value['benchmark-url'] = "'http://www.gstatic.com/generate_204'";
+		}
+	} else {
+		$proxiesNameCN[] = $value['name'];
+		if ($reqFlag === 'stash' && !isset($value['benchmark-timeout'], $value['benchmark-url'])) {
+			$value['benchmark-timeout'] = 5;
+			$value['benchmark-url'] = "'http://baidu.com'";
+		}
+	}
+}
 header('Content-Type: text/plain; charset=UTF-8');
 if (PHP_SAPI !== 'cli') {
 	if (!isset($_GET['k']) || !in_array(trim($_GET['k']), SubscribeKey)) {
@@ -49,7 +110,8 @@ if (!in_array($reqFlag, RecognizeFlag)) {
 }
 $useReqFlag = ((isset(RewriteFlag[$reqFlag])) ? RewriteFlag[$reqFlag] : $reqFlag);
 $subscribeBaseRule = @file_get_contents(SubscribeBaseRule);
-$proxies = '';
+$proxiesCount = 0;
+$proxies = array();
 $proxiesName = array();
 $proxiesNameLowLatency = array();
 $proxiesNameCN = array();
@@ -65,19 +127,19 @@ foreach (SubscribeURL as $subscribeURL) {
 	$canCache = false;
 	$useCache = false;
 	if (SubscribeCache !== null) {
-		if (is_dir('SubscribeCache') || mkdir('SubscribeCache')) {
+		if ((is_dir('SubscribeCache') || mkdir('SubscribeCache')) && stripos($subscribeURL, 'http') !== false) {
 			$canCache = true;
-		}
-		$subscribeURLDomain = str_replace('.', '-', ParseDomain($subscribeURL));
-		$subscribeURLSHA1 = sha1($subscribeURL);
-		if (!empty($subscribeURLDomain) && !empty($subscribeURLSHA1)) {
-			$subscribeCacheFilename = "SubscribeCache/{$useReqFlag}_{$subscribeURLDomain}_{$subscribeURLSHA1}.txt";
-			if (is_file($subscribeCacheFilename) && ($cacheMTime = filemtime($subscribeCacheFilename)) !== false) {
-				if (($cacheMTime + SubscribeCache) < time()) {
-					unlink($subscribeCacheFilename);
-				} else {
-					$useCache = true;
-					$subscribeURL = $subscribeCacheFilename;
+			$subscribeURLDomain = str_replace('.', '-', ParseDomain($subscribeURL));
+			$subscribeURLSHA1 = sha1($subscribeURL);
+			if (!empty($subscribeURLDomain) && !empty($subscribeURLSHA1)) {
+				$subscribeCacheFilename = "SubscribeCache/{$useReqFlag}_{$subscribeURLDomain}_{$subscribeURLSHA1}.txt";
+				if (is_file($subscribeCacheFilename) && ($cacheMTime = filemtime($subscribeCacheFilename)) !== false) {
+					if (($cacheMTime + SubscribeCache) < time()) {
+						unlink($subscribeCacheFilename);
+					} else {
+						$useCache = true;
+						$subscribeURL = $subscribeCacheFilename;
+					}
 				}
 			}
 		}
@@ -102,59 +164,62 @@ foreach (SubscribeURL as $subscribeURL) {
 		// 不支持的 flag, 直接转发任一原始响应.
 		die(implode($subscribeURLContent));
 	}
-	$firstLine = true;
+	$objMode = false;
+	$lastProxiesKey = null;
 	foreach ($subscribeURLContent as $subscribeLine) {
 		if (empty($subscribeLine)) {
 			continue;
 		}
-		if (SubscribeUserInfoReturn && $firstLine && $useCache && (SubscribeUserInfoReturnAll || $subscribeURLCount === 1) && ($subscribeUserInfo = stristr($subscribeLine, 'subscription-userinfo')) !== false) {
+		if (SubscribeUserInfoReturn && $useCache && (SubscribeUserInfoReturnAll || $subscribeURLCount === 1) && ($subscribeUserInfo = stristr($subscribeLine, 'subscription-userinfo')) !== false) {
 			header($subscribeUserInfo);
 			continue;
-		}
-		$firstLine = false;
-		if ($ruleSpaceIndent === 0 && (($spaceIndent = strspn($subscribeLine, ' ', 0, 8)) > 0) && ($spaceIndent % 2) === 0) {
-			$ruleSpaceIndent = $spaceIndent;
-			$ruleSpaceIndentStr = str_repeat(' ', $ruleSpaceIndent);
 		}
 		if ($detectProxies === -2 && stripos($subscribeLine, 'proxies') === 0) {
 			// 抓住代理节点标志!
 			$detectProxies = -1;
 		} else if ($detectProxies === -1) {
-			if (stripos($subscribeLine, $ruleSpaceIndentStr) === 0) {
-				if (preg_match('/^.*?name:(.*?),/', $subscribeLine, $proxiesNameMatches) !== false && count($proxiesNameMatches) > 1) {
-					if ($reqFlag === 'stash') {
-						if (stripos($subscribeLine, 'xtls-rprx-vision') !== false) {
-							continue;
-						}
-						$subscribeLine = preg_replace('/password: ?[\'"]?(.*?)[\'"]?([, }])/', "password: '$1', auth: '$1'$2", $subscribeLine, 1);
+			if ($ruleSpaceIndent === 0 && (($spaceIndent = strspn($subscribeLine, ' ', 0, 8)) > 0)) {
+				$ruleSpaceIndent = $spaceIndent;
+				$ruleSpaceIndentStr = str_repeat(' ', $ruleSpaceIndent);
+				$ruleSpace3IndentStr = str_repeat(' ', ($ruleSpaceIndent * 3));
+			}
+			if (!isset($ruleSpaceIndentStr) || stripos($subscribeLine, $ruleSpaceIndentStr) === 0) {
+				$trimSubscribeLine = trim($subscribeLine);
+				if (stripos($trimSubscribeLine, '-') === 0) {
+					$proxiesCount++;
+					if (stripos($trimSubscribeLine, '{') !== false && stripos($trimSubscribeLine, '}') !== false) {
+						$objMode = true;
 					}
-					$tmpProxiesName = trim($proxiesNameMatches[1], ",' ");
-					foreach (SubscribeIgnoreKeyword as $subscribeIgnoreKeyword) {
-						if (stripos($tmpProxiesName, $subscribeIgnoreKeyword) !== false) {
-							continue 2;
-						}
-					}
-					$subscribeLine = trim($subscribeLine);
-					//$subscribeLine = preg_replace('/flow: ?xtls-rprx-vision,? ?/', '', $subscribeLine, 1);
-					//$subscribeLine = str_replace('xtls-rprx-vision', 'xtls-rprx-origin', $subscribeLine);
-					if (stripos($tmpProxiesName, '🇨🇳') === false && stripos($tmpProxiesName, 'CN') === false && stripos($tmpProxiesName, '中国') === false) {
-						$proxiesName[] = "'{$tmpProxiesName}'";
-						if ($reqFlag === 'stash' && stripos($subscribeLine, 'benchmark-url:') === false && stripos($subscribeLine, 'benchmark-timeout:') === false ) {
-							$subscribeLine = preg_replace('/ ?} *$/', ", benchmark-timeout: 5, benchmark-url: 'http://www.gstatic.com/generate_204' }", $subscribeLine, 1);
-						}
-						foreach (SubscribeBaseRuleProxiesNameLowLatencyMatchList as $lowLatencyMatch) {
-							if (stripos($tmpProxiesName, $lowLatencyMatch) !== false) {
-								$proxiesNameLowLatency[] = "'{$tmpProxiesName}'";
-								break;
+				}
+				if ($objMode) {
+					$subscribeLineObjArr = explode(',', $trimSubscribeLine);
+					foreach ($subscribeLineObjArr as $objValue) {
+						$subscribeLineKVArr = explode(':', trim($objValue, ',{} '), 2);
+						if (count($subscribeLineKVArr) === 2) {
+							$key = trim($subscribeLineKVArr[0], ',-{} ');
+							if (stripos($subscribeLineKVArr[1], '{') !== false && stripos($subscribeLineKVArr[1], '}') !== false) {
+								$value = trim($subscribeLineKVArr[1], ', ');
+							} else {
+								$value = trim($subscribeLineKVArr[1], ',{} ');
 							}
-						}
-					} else {
-						$proxiesNameCN[] = "'{$tmpProxiesName}'";
-						if ($reqFlag === 'stash' && stripos($subscribeLine, 'benchmark-url:') === false && stripos($subscribeLine, 'benchmark-timeout:') === false ) {
-							$subscribeLine = preg_replace('/ ?} *$/', ", benchmark-timeout: 5, benchmark-url: 'http://baidu.com' }", $subscribeLine, 1);
+							$proxies[$proxiesCount][$key] = $value;
 						}
 					}
-					$proxies .= '    ' . $subscribeLine . "\n";
+				} else {
+					if ($lastProxiesKey !== null && isset($ruleSpace3IndentStr) && stripos($subscribeLine, $ruleSpace3IndentStr) === 0) {
+						$subscribeLineKV2Arr = explode(':', $trimSubscribeLine, 2);
+						if (count($subscribeLineKV2Arr) === 2) {
+							$proxies[$proxiesCount][$lastProxiesKey][$subscribeLineKV2Arr[0]] = trim($subscribeLineKV2Arr[1], ', ');
+						}
+						continue;
+					}
+					$subscribeLineKVArr = explode(':', $trimSubscribeLine, 2);
+					if (count($subscribeLineKVArr) === 2) {
+						$lastProxiesKey = trim($subscribeLineKVArr[0], ',{} ');
+						if (!empty($subscribeLineKVArr[1])) {
+							$proxies[$proxiesCount][$lastProxiesKey] = trim($subscribeLineKVArr[1], ', ');
+						}
+					}
 				}
 			} else if (stripos($subscribeLine, ':') !== false) {
 				$detectProxies = 0;
@@ -162,8 +227,35 @@ foreach (SubscribeURL as $subscribeURL) {
 		}
 	}
 }
-$proxies = trim($proxies);
-if (empty($proxies)) {
+$proxies = array_filter(array_map(function ($value) {
+	if (!NameFilter($value) || !TypeFilter($value) || !FlowFilter($value)) {
+		return null;
+	}
+	AddProxyNameToArr($value);
+	return $value;
+}, $proxies));
+$proxiesStr = '';
+foreach ($proxies as $proxy) {
+	$tmpProxiesStr = '';
+	foreach ($proxy as $key => $value) {
+		$tmpProxiesStr .= "{$key}: ";
+		if (is_array($value)) {
+			$tmpProxiesStr2 = "{ ";
+			foreach ($value as $key2 => $value2) {
+				$tmpProxiesStr2 .= "{$key2}: {$value2}, ";
+			}
+			$tmpProxiesStr .= trim($tmpProxiesStr2, ', ') . " }";
+		} else {
+			$tmpProxiesStr .= "{$value}";
+		}
+		$tmpProxiesStr .= ", ";
+	}
+	if (!empty($tmpProxiesStr))  {
+		$proxiesStr .= SubscribeBaseRuleSpace1IndentStr . '- { '. trim($tmpProxiesStr, ', ') . " }\n";
+	}
+}
+$proxiesStr = trim($proxiesStr);
+if (empty($proxiesStr)) {
 	die();
 }
 $proxiesNameStr = implode(', ', $proxiesName);
@@ -178,5 +270,5 @@ if (empty($proxiesNameLowLatencyStr)) {
 if (empty($proxiesNameCNStr)) {
 	$subscribeBaseRule = preg_replace('/, ?' . SubscribeBaseRuleProxiesNameCNTag . '/', '', $subscribeBaseRule);
 }
-echo str_replace(array(SubscribeBaseRuleProxiesTag, SubscribeBaseRuleProxiesNameTag, SubscribeBaseRuleProxiesNameLowLatencyTag, SubscribeBaseRuleProxiesNameCNTag), array($proxies, $proxiesNameStr, $proxiesNameLowLatencyStr, $proxiesNameCNStr), $subscribeBaseRule);
+echo str_replace(array(SubscribeBaseRuleProxiesTag, SubscribeBaseRuleProxiesNameTag, SubscribeBaseRuleProxiesNameLowLatencyTag, SubscribeBaseRuleProxiesNameCNTag), array($proxiesStr, $proxiesNameStr, $proxiesNameLowLatencyStr, $proxiesNameCNStr), $subscribeBaseRule);
 ?>
