@@ -12,10 +12,11 @@ define('SubscribeCache', 3600); // Seconds or null.
 define('SubscribeIgnoreKeyword', array('套餐', '到期', '流量', '重置'));
 define('SubscribeUserInfoReturn', true);
 define('SubscribeUserInfoReturnAll', false);
+define('AllowFlag', false);
 define('DefaultFlag', 'clash');
 define('SupportFlag', array('clash', 'meta', 'stash'));
 define('RewriteFlag', array('stash' => 'meta')); // Support first before rewriting.
-define('RecognizeFlag', array_merge(SupportFlag, array('surge', 'sing-box', 'shadowrocket')));
+define('RecognizeFlag', (AllowFlag ? (array_merge(SupportFlag, array('surge', 'sing-box', 'shadowrocket'))) : SupportFlag));
 define('SubscribeURL', array('https://example.com/api/v1/client/subscribe?token=a1b2c3d4e5f6g7h8i9')); // URL or Filename.
 function ParseDomain(string $url): string {
 	$parseURL = parse_url(trim($url));
@@ -58,7 +59,7 @@ header('profile-update-interval: 12');
 foreach (SubscribeURL as $subscribeURL) {
 	$ruleSpaceIndent = 0;
 	$detectProxies = -2; // -2: 等待检测代理标志, -1: 正在检测代理标志, 0: 已检测并提取代理.
-	if (stripos($subscribeURL, 'flag=') === false) {
+	if (AllowFlag && stripos($subscribeURL, 'flag=') === false) {
 		$subscribeURL .= "&flag={$useReqFlag}";
 	}
 	$canCache = false;
