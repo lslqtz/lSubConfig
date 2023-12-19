@@ -227,15 +227,18 @@ foreach (SubscribeURL as $subscribeURL) {
 		}
 	}
 }
-$proxies = array_filter(array_map(function ($value) {
+array_walk($proxies, function (&$value, $key) {
 	if (!NameFilter($value) || !TypeFilter($value) || !FlowFilter($value)) {
-		return null;
+		$value = null;
+		return;
 	}
 	AddProxyNameToArr($value);
-	return $value;
-}, $proxies));
+});
 $proxiesStr = '';
 foreach ($proxies as $proxy) {
+	if ($proxy === null) {
+		continue;
+	}
 	$tmpProxiesStr = '';
 	foreach ($proxy as $key => $value) {
 		$tmpProxiesStr .= "{$key}: ";
