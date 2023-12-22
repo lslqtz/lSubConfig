@@ -6,10 +6,12 @@ define('SubscribeBaseRule', 'clash_baserule.yml');
 define('SubscribeBaseRuleSpace1IndentStr', '    ');
 define('SubscribeBaseRuleProxiesTag', '----lPROXIES----');
 define('SubscribeBaseRuleProxiesNameTag', '----lPROXIESNAME----');
-define('SubscribeBaseRuleProxiesNameLowLatencyTag', '----lPROXIESNAME_LOWLATENCY----');
-define('SubscribeBaseRuleProxiesNameLowLatencyMatchList', array('🇭🇰', 'HK', '香港', '🇹🇼', 'TW', '台湾', '🇯🇵', 'JP', '日本', '🇰🇷', 'KR', '韩国'));
-define('SubscribeBaseRuleProxiesNameCNTag', '----lPROXIESNAME_CN----');
+define('SubscribeBaseRuleProxiesNameTag_Auto', '----lPROXIESNAME_AUTO----'); // 默认使用符合 Keyword 要求的 LowLatency 节点作为自动节点.
+define('SubscribeBaseRuleProxiesNameTag_LowLatency', '----lPROXIESNAME_LOWLATENCY----'); // 匹配以下关键词的被视作 LowLatency 节点.
+define('SubscribeBaseRuleProxiesNameMatchList_LowLatency', array('🇭🇰', 'HK', '香港', '🇹🇼', 'TW', '台湾', '🇯🇵', 'JP', '日本', '🇰🇷', 'KR', '韩国'));
+define('SubscribeBaseRuleProxiesNameTag_CN', '----lPROXIESNAME_CN----');
 define('SubscribeCache', 3600); // Seconds or null.
+define('SubscribeIgnoreKeyword_Auto', array('IPv6')); // 不使用仅 IPv6 节点作为自动节点.
 define('SubscribeIgnoreKeyword', array('套餐', '到期', '流量', '重置'));
 define('SubscribeUserInfoReturn', true);
 define('SubscribeUserInfoReturnAll', false);
@@ -46,6 +48,17 @@ function NameFilter(array $value): bool {
 	}
 	return true;
 }
+function NameFilter_Auto(array $value): bool {
+	if (!isset($value['name'])) {
+		return false;
+	}
+	foreach (SubscribeIgnoreKeyword_Auto as $subscribeIgnoreKeywordAuto) {
+		if (stripos($value['name'], $subscribeIgnoreKeywordAuto) !== false) {
+			return false;
+		}
+	}
+	return true;
+}
 function TypeFilter(array $value): bool {
 	global $useReqFlag;
 	if ($useReqFlag === 'clash') {
@@ -65,7 +78,7 @@ function FlowFilter(array $value): bool {
 	return true;
 }
 function AddProxyNameToArr(array &$value) {
-	global $reqFlag, $proxiesName, $proxiesNameLowLatency, $proxiesNameCN;
+	global $reqFlag, $proxiesName, $proxiesNameAuto, $proxiesNameLowLatency, $proxiesNameCN;
 	if ($reqFlag === 'stash') {
 		$issetPassword = (isset($value['password']));
 		$issetAuth = (isset($value['auth']));
@@ -75,22 +88,24 @@ function AddProxyNameToArr(array &$value) {
 			$value['password'] = $value['auth'];
 		}
 	}
-	foreach (SubscribeBaseRuleProxiesNameLowLatencyMatchList as $lowLatencyMatch) {
+	$proxiesName[] = $value['name'];
+	if ($reqFlag === 'stash' && !isset($value['benchmark-timeout'], $value['benchmark-url'])) {
+		$value['benchmark-timeout'] = 5;
+		$value['benchmark-url'] = "'http://www.gstatic.com/generate_204'";
+	}
+	foreach (SubscribeBaseRuleProxiesNameMatchList_LowLatency as $lowLatencyMatch) {
 		if (stripos($value['name'], $lowLatencyMatch) !== false) {
 			$proxiesNameLowLatency[] = $value['name'];
+			if (NameFilter_Auto($value)) {
+				$proxiesNameAuto[] = $value['name'];
+			}
 			break;
 		}
 	}
-	if (in_array($value['name'], $proxiesNameLowLatency) || (stripos($value['name'], '🇨🇳') === false && stripos($value['name'], 'CN') === false && stripos($value['name'], '中国') === false)) {
-		$proxiesName[] = $value['name'];
-		if ($reqFlag === 'stash' && !isset($value['benchmark-timeout'], $value['benchmark-url'])) {
-			$value['benchmark-timeout'] = 5;
-			$value['benchmark-url'] = "'http://www.gstatic.com/generate_204'";
-		}
-	} else {
+	// 在 LowLatency 节点列表的不视为 CN 节点.
+	if (!in_array($value['name'], $proxiesNameLowLatency) && (stripos($value['name'], '🇨🇳') !== false || stripos($value['name'], 'CN') !== false || stripos($value['name'], '中国') !== false)) {
 		$proxiesNameCN[] = $value['name'];
-		if ($reqFlag === 'stash' && !isset($value['benchmark-timeout'], $value['benchmark-url'])) {
-			$value['benchmark-timeout'] = 5;
+		if ($reqFlag === 'stash') {
 			$value['benchmark-url'] = "'http://baidu.com'";
 		}
 	}
@@ -113,6 +128,7 @@ $subscribeBaseRule = @file_get_contents(SubscribeBaseRule);
 $proxiesCount = 0;
 $proxies = array();
 $proxiesName = array();
+$proxiesNameAuto = array();
 $proxiesNameLowLatency = array();
 $proxiesNameCN = array();
 $subscribeURLCount = (count(SubscribeURL));
@@ -234,6 +250,7 @@ array_walk($proxies, function (&$value, $key) {
 	}
 	AddProxyNameToArr($value);
 });
+$proxiesName = array_diff($proxiesName, $proxiesNameCN); // 取差集, 去除 CN 节点.
 $proxiesStr = '';
 foreach ($proxies as $proxy) {
 	if ($proxy === null) {
@@ -262,16 +279,17 @@ if (empty($proxiesStr)) {
 	die();
 }
 $proxiesNameStr = implode(', ', $proxiesName);
+$proxiesNameAutoStr = ((count($proxiesNameAuto) > 0) ? implode(', ', $proxiesNameAuto) : 'DIRECT');
 $proxiesNameLowLatencyStr = implode(', ', $proxiesNameLowLatency);
 $proxiesNameCNStr = implode(', ', $proxiesNameCN);
 if (empty($proxiesNameStr)) {
 	$subscribeBaseRule = preg_replace('/, ?' . SubscribeBaseRuleProxiesNameTag . '/', '', $subscribeBaseRule);
 }
 if (empty($proxiesNameLowLatencyStr)) {
-	$subscribeBaseRule = preg_replace('/, ?' . SubscribeBaseRuleProxiesNameLowLatencyTag . '/', '', $subscribeBaseRule);
+	$subscribeBaseRule = preg_replace('/, ?' . SubscribeBaseRuleProxiesNameTag_LowLatency . '/', '', $subscribeBaseRule);
 }
 if (empty($proxiesNameCNStr)) {
-	$subscribeBaseRule = preg_replace('/, ?' . SubscribeBaseRuleProxiesNameCNTag . '/', '', $subscribeBaseRule);
+	$subscribeBaseRule = preg_replace('/, ?' . SubscribeBaseRuleProxiesNameTag_CN . '/', '', $subscribeBaseRule);
 }
-echo str_replace(array(SubscribeBaseRuleProxiesTag, SubscribeBaseRuleProxiesNameTag, SubscribeBaseRuleProxiesNameLowLatencyTag, SubscribeBaseRuleProxiesNameCNTag), array($proxiesStr, $proxiesNameStr, $proxiesNameLowLatencyStr, $proxiesNameCNStr), $subscribeBaseRule);
+echo str_replace(array(SubscribeBaseRuleProxiesTag, SubscribeBaseRuleProxiesNameTag, SubscribeBaseRuleProxiesNameTag_Auto, SubscribeBaseRuleProxiesNameTag_LowLatency, SubscribeBaseRuleProxiesNameTag_CN), array($proxiesStr, $proxiesNameStr, $proxiesNameAutoStr, $proxiesNameLowLatencyStr, $proxiesNameCNStr), $subscribeBaseRule);
 ?>
