@@ -11,6 +11,7 @@ define('SubscribeBaseRuleProxiesNameTag_LowLatency', '----lPROXIESNAME_LOWLATENC
 define('SubscribeBaseRuleProxiesNameMatchList_LowLatency', array('🇭🇰', 'HK', '香港', '🇹🇼', 'TW', '台湾', '🇯🇵', 'JP', '日本', '🇰🇷', 'KR', '韩国'));
 define('SubscribeBaseRuleProxiesNameTag_CN', '----lPROXIESNAME_CN----');
 define('SubscribeCache', 3600); // Seconds or null.
+define('SubscribeAutoUseLowLatencyOnly', true); // 默认仅使用 LowLatency 节点作为自动节点.
 define('SubscribeIgnoreKeyword_Auto', array('IPv6')); // 不使用仅 IPv6 节点作为自动节点.
 define('SubscribeIgnoreKeyword', array('套餐', '到期', '流量', '重置'));
 define('SubscribeUserInfoReturn', true);
@@ -96,7 +97,7 @@ function AddProxyNameToArr(array &$value) {
 	foreach (SubscribeBaseRuleProxiesNameMatchList_LowLatency as $lowLatencyMatch) {
 		if (stripos($value['name'], $lowLatencyMatch) !== false) {
 			$proxiesNameLowLatency[] = $value['name'];
-			if (NameFilter_Auto($value)) {
+			if (SubscribeAutoUseLowLatencyOnly && NameFilter_Auto($value)) {
 				$proxiesNameAuto[] = $value['name'];
 			}
 			break;
@@ -108,6 +109,8 @@ function AddProxyNameToArr(array &$value) {
 		if ($reqFlag === 'stash') {
 			$value['benchmark-url'] = "'http://baidu.com'";
 		}
+	} else if (!SubscribeAutoUseLowLatencyOnly && NameFilter_Auto($value)) {
+		$proxiesNameAuto[] = $value['name'];
 	}
 }
 header('Content-Type: text/plain; charset=UTF-8');
