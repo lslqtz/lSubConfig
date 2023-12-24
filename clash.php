@@ -13,7 +13,7 @@ define('SubscribeBaseRuleProxiesNameTag_CN', '----lPROXIESNAME_CN----');
 define('SubscribeCache', 3600); // Seconds or null.
 define('SubscribeAutoUseLowLatencyOnly', true); // 默认仅使用 LowLatency 节点作为自动节点.
 define('SubscribeIgnoreKeyword_Auto', array('IPv6')); // 不使用仅 IPv6 节点作为自动节点.
-define('SubscribeIgnoreKeyword', array('套餐', '到期', '流量', '重置'));
+define('SubscribeIgnoreKeyword', array('套餐', '到期', '流量', '重置', '官网', '最新'));
 define('SubscribeUserInfoReturn', true);
 define('SubscribeUserInfoReturnAll', false);
 define('AllowFlag', false);
