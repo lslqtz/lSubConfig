@@ -125,6 +125,15 @@ if (!in_array($reqFlag, RecognizeFlag)) {
 	http_response_code(403);
 	die("Bad flag.\n");
 }
+if (SubscribeCache !== null) {
+	if (!is_dir('SubscribeCache') && !mkdir('SubscribeCache')) {
+		// 没有权限创建缓存文件夹.
+		http_response_code(403);
+		die("Bad permission.\n");
+	}
+	$lockRes = fopen('SubscribeCache/clash.lock', 'w');
+	flock($lockRes, LOCK_EX);
+}
 $useReqFlag = ((isset(RewriteFlag[$reqFlag])) ? RewriteFlag[$reqFlag] : $reqFlag);
 $subscribeBaseRule = @file_get_contents(SubscribeBaseRule);
 $proxiesCount = 0;
@@ -145,7 +154,7 @@ foreach (SubscribeURL as $subscribeURL => $subscribeFlagParam) {
 	$canCache = false;
 	$useCache = false;
 	if (SubscribeCache !== null) {
-		if ((is_dir('SubscribeCache') || mkdir('SubscribeCache')) && stripos($subscribeURL, 'http') !== false) {
+		if (stripos($subscribeURL, 'http') !== false) {
 			$canCache = true;
 			$subscribeURLDomain = str_replace('.', '-', ParseDomain($subscribeURL));
 			$subscribeURLSHA1 = sha1($subscribeURL);
@@ -247,6 +256,11 @@ foreach (SubscribeURL as $subscribeURL => $subscribeFlagParam) {
 			}
 		}
 	}
+}
+if (SubscribeCache !== null) {
+	flock($lockRes, LOCK_UN);
+	fclose($lockRes);
+	unlink('SubscribeCache/clash.lock');
 }
 array_walk($proxies, function (&$value, $key) {
 	if (!NameFilter($value) || !TypeFilter($value) || !FlowFilter($value)) {
