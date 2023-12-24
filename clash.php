@@ -16,12 +16,11 @@ define('SubscribeIgnoreKeyword_Auto', array('IPv6')); // 不使用仅 IPv6 节�
 define('SubscribeIgnoreKeyword', array('套餐', '到期', '流量', '重置', '官网', '最新'));
 define('SubscribeUserInfoReturn', true);
 define('SubscribeUserInfoReturnAll', false);
-define('AllowFlag', false);
 define('DefaultFlag', 'clash');
 define('SupportFlag', array('clash', 'meta', 'stash'));
 define('RewriteFlag', array('stash' => 'meta')); // Support first before rewriting.
-define('RecognizeFlag', (AllowFlag ? (array_merge(SupportFlag, array('surge', 'sing-box', 'shadowrocket'))) : SupportFlag));
-define('SubscribeURL', array('https://example.com/api/v1/client/subscribe?token=a1b2c3d4e5f6g7h8i9')); // URL or Filename.
+define('RecognizeFlag', array_merge(SupportFlag, array('surge', 'sing-box', 'shadowrocket')));
+define('SubscribeURL', array('https://example1.com/api/v1/client/subscribe?token=a1b2c3d4e5f6g7h8i9' => null, 'https://example2.com/api/v1/client/subscribe?token=a1b2c3d4e5f6g7h8i9' => '&flag={useReqFlag}')); // (URL or Filename) => (FlagParam or null).
 function ParseDomain(string $url): string {
 	$parseURL = parse_url(trim($url));
 	return trim((isset($parseURL['host']) ? $parseURL['host'] : array_shift(explode('/', $parseURL['path'], 2))));
@@ -137,11 +136,11 @@ $proxiesNameCN = array();
 $subscribeURLCount = (count(SubscribeURL));
 header('Content-Disposition: attachment; filename=Subscribe');
 header('profile-update-interval: 12');
-foreach (SubscribeURL as $subscribeURL) {
+foreach (SubscribeURL as $subscribeURL => $subscribeFlagParam) {
 	$ruleSpaceIndent = 0;
 	$detectProxies = -2; // -2: 等待检测代理标志, -1: 正在检测代理标志, 0: 已检测并提取代理.
-	if (AllowFlag && stripos($subscribeURL, 'flag=') === false) {
-		$subscribeURL .= "&flag={$useReqFlag}";
+	if ($subscribeFlagParam !== null && stripos($subscribeURL, str_replace(array('{useReqFlag}', '&', '?'), '', $subscribeFlagParam)) === false) {
+		$subscribeURL .= str_replace('{useReqFlag}', $useReqFlag, $subscribeFlagParam);
 	}
 	$canCache = false;
 	$useCache = false;
@@ -180,8 +179,11 @@ foreach (SubscribeURL as $subscribeURL) {
 		}
 	}
 	if (!in_array($reqFlag, SupportFlag)) {
-		// 不支持的 flag, 直接转发任一原始响应.
-		die(implode($subscribeURLContent));
+		// 不支持的 flag, 若订阅设置为 Allow Flag, 则直接转发任一原始响应.
+		if ($subscribeFlagParam !== null) {
+			die(implode($subscribeURLContent));
+		}
+		continue;
 	}
 	$objMode = false;
 	$lastProxiesKey = null;
