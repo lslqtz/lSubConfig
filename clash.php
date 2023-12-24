@@ -169,7 +169,7 @@ foreach (SubscribeURL as $subscribeURL => $subscribeFlagParam) {
 	if (!$useCache) {
 		$subscribeUserInfo = GetHTTPHeader('subscription-userinfo');
 		if (SubscribeUserInfoReturn && !empty($subscribeUserInfo) && (SubscribeUserInfoReturnAll || $subscribeURLCount === 1)) {
-			header($subscribeUserInfo);
+			header($subscribeUserInfo, false);
 		}
 		if ($canCache) {
 			if (!empty($subscribeUserInfo)) {
@@ -192,7 +192,7 @@ foreach (SubscribeURL as $subscribeURL => $subscribeFlagParam) {
 			continue;
 		}
 		if (SubscribeUserInfoReturn && $useCache && (SubscribeUserInfoReturnAll || $subscribeURLCount === 1) && ($subscribeUserInfo = stristr($subscribeLine, 'subscription-userinfo')) !== false) {
-			header($subscribeUserInfo);
+			header($subscribeUserInfo, false);
 			continue;
 		}
 		if ($detectProxies === -2 && stripos($subscribeLine, 'proxies') === 0) {
