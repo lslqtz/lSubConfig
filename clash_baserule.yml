@@ -29,7 +29,12 @@ proxy-groups:
     - { name: '🇨🇳IP属地分流', type: select, proxies: [DIRECT, '🇨🇳全局回国节点', '♾️自动出国节点', ----lPROXIESNAME----], url: 'http://www.gstatic.com/generate_204', lazy: true, timeout: 5, interval: 900 }
 
 rules:
-    - 'DST-PORT,22,DIRECT'
+    #- 'DST-PORT,22,DIRECT'
+    
+    # Apple Map
+    - 'DOMAIN-SUFFIX,ls.apple.com,DIRECT'
+    - 'DOMAIN-SUFFIX,gs-loc.apple.com,DIRECT'
+
     - 'IP-CIDR,192.168.0.0/16,DIRECT,no-resolve'
     - 'IP-CIDR,10.0.0.0/8,DIRECT,no-resolve'
     - 'IP-CIDR,172.16.0.0/12,DIRECT,no-resolve'

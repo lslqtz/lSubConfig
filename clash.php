@@ -8,7 +8,7 @@ define('SubscribeBaseRuleProxiesTag', '----lPROXIES----');
 define('SubscribeBaseRuleProxiesNameTag', '----lPROXIESNAME----');
 define('SubscribeBaseRuleProxiesNameTag_Auto', '----lPROXIESNAME_AUTO----'); // 默认使用符合 Keyword 要求的 LowLatency 节点作为自动节点.
 define('SubscribeBaseRuleProxiesNameTag_LowLatency', '----lPROXIESNAME_LOWLATENCY----'); // 匹配以下关键词的被视作 LowLatency 节点.
-define('SubscribeBaseRuleProxiesNameMatchList_LowLatency', array('🇭🇰', 'HK', '香港', '🇹🇼', 'TW', '台湾', '🇯🇵', 'JP', '日本', '🇰🇷', 'KR', '韩国'));
+define('SubscribeBaseRuleProxiesNameMatchList_LowLatency', array('🇭🇰', 'HK', '香港', '🇹🇼', 'TW', '台湾'));
 define('SubscribeBaseRuleProxiesNameTag_CN', '----lPROXIESNAME_CN----');
 define('SubscribeCache', 3600); // Seconds or null.
 define('SubscribeAutoUseLowLatencyOnly', true); // 默认仅使用 LowLatency 节点作为自动节点.
