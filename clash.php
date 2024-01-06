@@ -11,6 +11,7 @@ define('SubscribeBaseRuleProxiesNameTag_LowLatency', '----lPROXIESNAME_LOWLATENC
 define('SubscribeBaseRuleProxiesNameMatchList_LowLatency', array('🇭🇰', 'HK', '香港', '🇹🇼', 'TW', '台湾'));
 define('SubscribeBaseRuleProxiesNameTag_CN', '----lPROXIESNAME_CN----');
 define('SubscribeCache', 3600); // Seconds or null.
+define('SubscribeUpdateInterval', 12); // Hours or null.
 define('SubscribeAutoUseLowLatencyOnly', true); // 默认仅使用 LowLatency 节点作为自动节点.
 define('SubscribeIgnoreKeyword_Auto', array('IPv6')); // 不使用仅 IPv6 节点作为自动节点.
 define('SubscribeIgnoreKeyword', array('套餐', '到期', '流量', '重置', '官网', '最新'));
@@ -144,7 +145,7 @@ $proxiesNameLowLatency = array();
 $proxiesNameCN = array();
 $subscribeURLCount = (count(SubscribeURL));
 header('Content-Disposition: attachment; filename=Subscribe');
-header('profile-update-interval: 12');
+header('profile-update-interval: ' . SubscribeUpdateInterval);
 foreach (SubscribeURL as $subscribeURL => $subscribeFlagParam) {
 	$ruleSpaceIndent = 0;
 	$detectProxies = -2; // -2: 等待检测代理标志, -1: 正在检测代理标志, 0: 已检测并提取代理.
@@ -222,16 +223,24 @@ foreach (SubscribeURL as $subscribeURL => $subscribeFlagParam) {
 					}
 				}
 				if ($objMode) {
-					$subscribeLineObjArr = explode(',', $trimSubscribeLine);
+					$subscribeLineObjArr = explode(',', substr(substr(trim($trimSubscribeLine, '- '), 1), 0, -1));
+					$tmpObjValue = '';
+					$lCount = 0;
 					foreach ($subscribeLineObjArr as $objValue) {
-						$subscribeLineKVArr = explode(':', trim($objValue, ',{} '), 2);
-						if (count($subscribeLineKVArr) === 2) {
-							$key = trim($subscribeLineKVArr[0], ',-{} ');
-							if (stripos($subscribeLineKVArr[1], '{') !== false && stripos($subscribeLineKVArr[1], '}') !== false) {
-								$value = trim($subscribeLineKVArr[1], ', ');
-							} else {
-								$value = trim($subscribeLineKVArr[1], ',{} ');
+						if (($tmpLCount = substr_count($objValue, '{') - substr_count($objValue, '}')) !== 0) {
+							$lCount += $tmpLCount;
+							$tmpObjValue .= ", {$objValue}";
+							if ($lCount !== 0) {
+								continue;
 							}
+							$objValue = $tmpObjValue;
+							$tmpObjValue = '';
+						}
+						$objValue = trim($objValue, ', ');
+						$subscribeLineKVArr = explode(':', $objValue, 2);
+						if (count($subscribeLineKVArr) === 2) {
+							$key = trim($subscribeLineKVArr[0], ', ');
+							$value = trim($subscribeLineKVArr[1], ', ');
 							$proxies[$proxiesCount][$key] = $value;
 						}
 					}
