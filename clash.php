@@ -89,7 +89,7 @@ function AddProxyNameToArr(array &$value) {
 			$value['password'] = $value['auth'];
 		}
 	}
-	$proxiesName[] = $value['name'];
+	$proxiesName[] = "'" . trim($value['name'], "'") . "'";
 	if ($reqFlag === 'stash' && !isset($value['benchmark-timeout'], $value['benchmark-url'])) {
 		$value['benchmark-timeout'] = 5;
 		$value['benchmark-url'] = "'http://www.gstatic.com/generate_204'";
