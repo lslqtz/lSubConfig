@@ -205,7 +205,7 @@ foreach (SubscribeURL as $subscribeURL => $subscribeFlagParam) {
 			header($subscribeUserInfo, false);
 			continue;
 		}
-		if ($detectProxies === -2 && stripos($subscribeLine, 'proxies') === 0) {
+		if ($detectProxies === -2 && trim($subscribeLine) === 'proxies:') {
 			// 抓住代理节点标志!
 			$detectProxies = -1;
 		} else if ($detectProxies === -1) {
