@@ -90,7 +90,11 @@ function AddProxyNameToArr(array &$value) {
 		}
 	}
 	$proxiesName[] = "'" . trim($value['name'], "'") . "'";
-	if ($reqFlag === 'stash' && !isset($value['benchmark-timeout'], $value['benchmark-url'])) {
+	if (!isset($value['timeout'], $value['url'])) {
+		$value['timeout'] = 5;
+		$value['url'] = "'http://www.gstatic.com/generate_204'";
+	}
+	if (!isset($value['benchmark-timeout'], $value['benchmark-url'])) {
 		$value['benchmark-timeout'] = 5;
 		$value['benchmark-url'] = "'http://www.gstatic.com/generate_204'";
 	}
@@ -107,6 +111,7 @@ function AddProxyNameToArr(array &$value) {
 	if (!in_array($value['name'], $proxiesNameLowLatency) && (stripos($value['name'], '🇨🇳') !== false || stripos($value['name'], 'CN') !== false || stripos($value['name'], '中国') !== false)) {
 		$proxiesNameCN[] = $value['name'];
 		if ($reqFlag === 'stash') {
+			$value['url'] = "'http://baidu.com'";
 			$value['benchmark-url'] = "'http://baidu.com'";
 		}
 	} else if (!SubscribeAutoUseLowLatencyOnly && NameFilter_Auto($value)) {
