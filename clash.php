@@ -140,6 +140,8 @@ if (SubscribeCache !== null) {
 	$lockRes = fopen('SubscribeCache/clash.lock', 'w');
 	flock($lockRes, LOCK_EX);
 }
+$allowLAN = ((isset($_GET['allow_lan']) && $_GET['allow_lan'] === 'true') ? 'true' : 'false');
+$bindAddress = ((!empty($_GET['bind_address'])) ? $_GET['bind_address'] : '127.0.0.1');
 $useReqFlag = ((isset(RewriteFlag[$reqFlag])) ? RewriteFlag[$reqFlag] : $reqFlag);
 $subscribeBaseRule = @file_get_contents(SubscribeBaseRule);
 $proxiesCount = 0;
@@ -324,5 +326,5 @@ if (empty($proxiesNameLowLatencyStr)) {
 if (empty($proxiesNameCNStr)) {
 	$subscribeBaseRule = preg_replace('/, ?' . SubscribeBaseRuleProxiesNameTag_CN . '/', '', $subscribeBaseRule);
 }
-echo str_replace(array(SubscribeBaseRuleProxiesTag, SubscribeBaseRuleProxiesNameTag, SubscribeBaseRuleProxiesNameTag_Auto, SubscribeBaseRuleProxiesNameTag_LowLatency, SubscribeBaseRuleProxiesNameTag_CN), array($proxiesStr, $proxiesNameStr, $proxiesNameAutoStr, $proxiesNameLowLatencyStr, $proxiesNameCNStr), $subscribeBaseRule);
+echo str_replace(array(SubscribeBaseRuleProxiesTag, SubscribeBaseRuleProxiesNameTag, SubscribeBaseRuleProxiesNameTag_Auto, SubscribeBaseRuleProxiesNameTag_LowLatency, SubscribeBaseRuleProxiesNameTag_CN, '----lAllowLAN----', '----lBindAddress----'), array($proxiesStr, $proxiesNameStr, $proxiesNameAutoStr, $proxiesNameLowLatencyStr, $proxiesNameCNStr, $allowLAN, "'{$bindAddress}'"), $subscribeBaseRule);
 ?>
