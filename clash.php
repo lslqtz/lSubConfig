@@ -276,7 +276,7 @@ foreach (SubscribeURL as $subscribeURL => $subscribeFlagParam) {
 if (SubscribeCache !== null) {
 	flock($lockRes, LOCK_UN);
 	fclose($lockRes);
-	unlink('SubscribeCache/clash.lock');
+	@unlink('SubscribeCache/clash.lock');
 }
 array_walk($proxies, function (&$value, $key) {
 	if (!NameFilter($value) || !TypeFilter($value) || !FlowFilter($value)) {
