@@ -156,8 +156,19 @@ header('profile-update-interval: ' . SubscribeUpdateInterval);
 foreach (SubscribeURL as $subscribeURL => $subscribeFlagParam) {
 	$ruleSpaceIndent = 0;
 	$detectProxies = -2; // -2: 等待检测代理标志, -1: 正在检测代理标志, 0: 已检测并提取代理.
-	if ($subscribeFlagParam !== null && stripos($subscribeURL, str_replace(array('{useReqFlag}', '&', '?'), '', $subscribeFlagParam)) === false) {
-		$subscribeURL .= str_replace('{useReqFlag}', $useReqFlag, $subscribeFlagParam);
+	if ($subscribeFlagParam !== null) {
+		preg_match_all('/{rep:(.*?)\|(.*?)}/', $subscribeFlagParam, $repMatches);
+		if (count($repMatches) > 2) {
+			foreach ($repMatches[1] as $repKey => $repStr) {
+				if ($useReqFlag === trim($repStr)) {
+					$useReqFlag = trim($repMatches[2][$repKey]);
+					break;
+				}
+			}
+		}
+		if (stripos($subscribeURL, str_replace(array('{useReqFlag}', '&', '?'), '', $subscribeFlagParam)) === false) {
+			$subscribeURL .= str_replace('{useReqFlag}', $useReqFlag, $subscribeFlagParam);
+		}
 	}
 	$canCache = false;
 	$useCache = false;
