@@ -154,6 +154,7 @@ $subscribeURLCount = (count(SubscribeURL));
 header('Content-Disposition: attachment; filename=Subscribe');
 header('profile-update-interval: ' . SubscribeUpdateInterval);
 foreach (SubscribeURL as $subscribeURL => $subscribeFlagParam) {
+	unset($ruleSpaceIndentStr, $ruleSpaceIndentStrWithoutMinus, $ruleSpace3IndentStr);
 	$ruleSpaceIndent = 0;
 	$detectProxies = -2; // -2: 等待检测代理标志, -1: 正在检测代理标志, 0: 已检测并提取代理.
 	if ($subscribeFlagParam !== null) {
@@ -223,18 +224,19 @@ foreach (SubscribeURL as $subscribeURL => $subscribeFlagParam) {
 			header($subscribeUserInfo, false);
 			continue;
 		}
-		if ($detectProxies === -2 && trim($subscribeLine) === 'proxies:') {
+		$trimSubscribeLine = trim($subscribeLine);
+		if ($detectProxies === -2 && $trimSubscribeLine === 'proxies:') {
 			// 抓住代理节点标志!
 			$detectProxies = -1;
 		} else if ($detectProxies === -1) {
 			if ($ruleSpaceIndent === 0 && (($spaceIndent = strspn($subscribeLine, ' ', 0, 8)) > 0)) {
 				$ruleSpaceIndent = $spaceIndent;
 				$ruleSpaceIndentStr = str_repeat(' ', $ruleSpaceIndent);
+				$ruleSpaceIndentStrWithoutMinus = '-' . str_repeat(' ', ($ruleSpaceIndent - 1));
 				$ruleSpace3IndentStr = str_repeat(' ', ($ruleSpaceIndent * 3));
 			}
-			if (!isset($ruleSpaceIndentStr) || stripos($subscribeLine, $ruleSpaceIndentStr) === 0) {
-				$trimSubscribeLine = trim($subscribeLine);
-				if (stripos($trimSubscribeLine, '-') === 0) {
+			if (!isset($ruleSpaceIndentStr) || stripos($subscribeLine, ($subscribeLine[0] === '-' ? $ruleSpaceIndentStrWithoutMinus : $ruleSpaceIndentStr)) === 0) {
+				if ($trimSubscribeLine[0] === '-') {
 					$proxiesCount++;
 					if (stripos($trimSubscribeLine, '{') !== false && stripos($trimSubscribeLine, '}') !== false) {
 						$objMode = true;
@@ -272,14 +274,15 @@ foreach (SubscribeURL as $subscribeURL => $subscribeFlagParam) {
 					}
 					$subscribeLineKVArr = explode(':', $trimSubscribeLine, 2);
 					if (count($subscribeLineKVArr) === 2) {
-						$lastProxiesKey = trim($subscribeLineKVArr[0], ',{} ');
+						$lastProxiesKey = trim($subscribeLineKVArr[0], ',{} -');
 						if (!empty($subscribeLineKVArr[1])) {
 							$proxies[$proxiesCount][$lastProxiesKey] = trim($subscribeLineKVArr[1], ', ');
 						}
 					}
 				}
-			} else if (stripos($subscribeLine, ':') !== false) {
+			} else if ($trimSubscribeLine[0] !== '-' && stripos($trimSubscribeLine, ':') !== false) {
 				$detectProxies = 0;
+				break;
 			}
 		}
 	}
