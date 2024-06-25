@@ -2,7 +2,7 @@
 ini_set('user_agent', 'lSubConfig/1.0');
 ini_set('default_socket_timeout', '30');
 define('SubscribeKey', array('DefaultSubscribeKey'));
-define('SubscribeBaseRule', 'clash_baserule.yml');
+define('SubscribeBaseRule', 'clash-{ruleMode}_baserule.yml');
 define('SubscribeBaseRuleSpace1IndentStr', '    ');
 define('SubscribeBaseRuleProxiesTag', '----lPROXIES----');
 define('SubscribeBaseRuleProxiesNameTag', '----lPROXIESNAME----');
@@ -143,7 +143,19 @@ if (SubscribeCache !== null) {
 $allowLAN = ((isset($_GET['allow_lan']) && $_GET['allow_lan'] === 'true') ? 'true' : 'false');
 $bindAddress = ((!empty($_GET['bind_address'])) ? $_GET['bind_address'] : '127.0.0.1');
 $useReqFlag = ((isset(RewriteFlag[$reqFlag])) ? RewriteFlag[$reqFlag] : $reqFlag);
-$subscribeBaseRule = @file_get_contents(SubscribeBaseRule);
+if (!empty($_GET['mode'])) {
+	$subscribeBaseRuleMode = trim(strtolower($_GET['mode']));
+	$subscribeBaseRuleFilename = str_replace('-{ruleMode}', "-{$subscribeBaseRuleMode}", SubscribeBaseRuleFilename);
+} else {
+	$subscribeBaseRuleMode = 'normal';
+	$subscribeBaseRuleFilename = str_replace('-{ruleMode}', '', SubscribeBaseRuleFilename);
+}
+$subscribeBaseRuleMode[0] = strtoupper($subscribeBaseRuleMode[0]);
+if (!is_file($subscribeBaseRuleFilename)) {
+	http_response_code(404);
+	die("Bad subscribe baserule filename.\n");
+}
+$subscribeBaseRule = @file_get_contents($subscribeBaseRuleFilename);
 $proxiesCount = 0;
 $proxies = array();
 $proxiesName = array();
@@ -151,7 +163,7 @@ $proxiesNameAuto = array();
 $proxiesNameLowLatency = array();
 $proxiesNameCN = array();
 $subscribeURLCount = (count(SubscribeURL));
-header('Content-Disposition: attachment; filename=Subscribe');
+header('Content-Disposition: attachment; filename="Subscribe (' .  $subscribeBaseRuleMode . ')"');
 header('profile-update-interval: ' . SubscribeUpdateInterval);
 foreach (SubscribeURL as $subscribeURL => $subscribeFlagParam) {
 	unset($ruleSpaceIndentStr, $ruleSpaceIndentStrWithoutMinus, $ruleSpace3IndentStr);
