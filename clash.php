@@ -1,5 +1,6 @@
 <?php
 ini_set('user_agent', 'lSubConfig/1.0');
+ini_set('user_agent', 'lSubConfig/1.0 (Compatible with Clash.Meta)');
 ini_set('default_socket_timeout', '30');
 define('SubscribeKey', array('DefaultSubscribeKey'));
 define('SubscribeBaseRule', 'clash-{ruleMode}_baserule.yml');
@@ -91,7 +92,7 @@ function AddProxyNameToArr(array &$value) {
 	}
 	$proxiesName[] = "'" . trim($value['name'], "'") . "'";
 	if (!isset($value['timeout'], $value['url'])) {
-		$value['timeout'] = 5;
+		$value['timeout'] = 5000;
 		$value['url'] = "'http://www.gstatic.com/generate_204'";
 	}
 	if (!isset($value['benchmark-timeout'], $value['benchmark-url'])) {
@@ -141,7 +142,7 @@ if (SubscribeCache !== null) {
 	flock($lockRes, LOCK_EX);
 }
 $allowLAN = ((isset($_GET['allow_lan']) && $_GET['allow_lan'] === 'true') ? 'true' : 'false');
-$bindAddress = ((!empty($_GET['bind_address'])) ? $_GET['bind_address'] : '127.0.0.1');
+$bindAddress = ((!empty($_GET['bind_address'])) ? trim(strtolower($_GET['bind_address'])) : '127.0.0.1');
 $useReqFlag = ((isset(RewriteFlag[$reqFlag])) ? RewriteFlag[$reqFlag] : $reqFlag);
 if (!empty($_GET['mode'])) {
 	$subscribeBaseRuleMode = trim(strtolower($_GET['mode']));
@@ -343,14 +344,24 @@ $proxiesNameStr = implode(', ', $proxiesName);
 $proxiesNameAutoStr = ((count($proxiesNameAuto) > 0) ? implode(', ', $proxiesNameAuto) : 'DIRECT');
 $proxiesNameLowLatencyStr = implode(', ', $proxiesNameLowLatency);
 $proxiesNameCNStr = implode(', ', $proxiesNameCN);
+foreach (SupportFlag as $supportFlag) {
+	if ($reqFlag === $supportFlag) {
+		continue;
+	}
+	$subscribeBaseRule = preg_replace('/.*# *?' . $supportFlag . ' *?$(\r)?\n/im', '', $subscribeBaseRule);
+}
 if (empty($proxiesNameStr)) {
-	$subscribeBaseRule = preg_replace('/, ?' . SubscribeBaseRuleProxiesNameTag . '/', '', $subscribeBaseRule);
+	$subscribeBaseRule = preg_replace('/, ?' . SubscribeBaseRuleProxiesNameTag . '/m', '', $subscribeBaseRule);
 }
 if (empty($proxiesNameLowLatencyStr)) {
-	$subscribeBaseRule = preg_replace('/, ?' . SubscribeBaseRuleProxiesNameTag_LowLatency . '/', '', $subscribeBaseRule);
+	$subscribeBaseRule = preg_replace('/, ?' . SubscribeBaseRuleProxiesNameTag_LowLatency . '/m', '', $subscribeBaseRule);
 }
 if (empty($proxiesNameCNStr)) {
-	$subscribeBaseRule = preg_replace('/, ?' . SubscribeBaseRuleProxiesNameTag_CN . '/', '', $subscribeBaseRule);
+	$subscribeBaseRule = preg_replace('/, ?' . SubscribeBaseRuleProxiesNameTag_CN . '/m', '', $subscribeBaseRule);
 }
-echo str_replace(array(SubscribeBaseRuleProxiesTag, SubscribeBaseRuleProxiesNameTag, SubscribeBaseRuleProxiesNameTag_Auto, SubscribeBaseRuleProxiesNameTag_LowLatency, SubscribeBaseRuleProxiesNameTag_CN, '----lAllowLAN----', '----lBindAddress----'), array($proxiesStr, $proxiesNameStr, $proxiesNameAutoStr, $proxiesNameLowLatencyStr, $proxiesNameCNStr, $allowLAN, "'{$bindAddress}'"), $subscribeBaseRule);
+$subscribeFinalRule = str_replace(array(SubscribeBaseRuleProxiesTag, SubscribeBaseRuleProxiesNameTag, SubscribeBaseRuleProxiesNameTag_Auto, SubscribeBaseRuleProxiesNameTag_LowLatency, SubscribeBaseRuleProxiesNameTag_CN, '----lAllowLAN----', '----lBindAddress----'), array($proxiesStr, $proxiesNameStr, $proxiesNameAutoStr, $proxiesNameLowLatencyStr, $proxiesNameCNStr, $allowLAN, "'{$bindAddress}'"), $subscribeBaseRule);
+$targetHost = (isset($_GET['host']) ? trim(strtolower($_GET['host'])) : 'p11.douyinpic.com');
+$subscribeFinalRule = str_replace('tms.dingtalk.com', '----lPROXIESHOST----', $subscribeFinalRule);
+$subscribeFinalRule = str_replace('----lPROXIESHOST----', $targetHost, $subscribeFinalRule);
+echo $subscribeFinalRule;
 ?>

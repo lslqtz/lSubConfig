@@ -28,9 +28,16 @@ proxy-groups:
     - { name: '🇨🇳国内流媒体', type: 'select', proxies: [DIRECT, '🇨🇳全局回国节点'], lazy: true, interval: 900, timeout: 5000, benchmark-timeout: 5, url: 'http://baidu.com', benchmark-url: 'http://baidu.com' }
     - { name: '🇨🇳IP属地分流', type: 'select', proxies: [DIRECT, '🇨🇳全局回国节点', '🇺🇳全局出国节点', '♾️自动出国节点', ----lPROXIESNAME----], lazy: true, interval: 900, timeout: 5000, benchmark-timeout: 5, url: 'http://baidu.com', benchmark-url: 'http://baidu.com' }
 
+script:
+    shortcuts:
+        QUIC: 'network == "udp" and dst_port == 443'
+
 rules:
-    #- 'DST-PORT,22,DIRECT'
-    
+    - 'DST-PORT,22,DIRECT,no-resolve'
+    - 'SCRIPT,QUIC,REJECT,no-resolve' # Clash
+    - 'SCRIPT,QUIC,REJECT,no-resolve' # Stash
+    - 'AND,((NETWORK,UDP),(DST-PORT,443,no-resolve)),REJECT' # Meta
+
     # Apple Map
     - 'DOMAIN-SUFFIX,ls.apple.com,DIRECT'
     - 'DOMAIN-SUFFIX,gs-loc.apple.com,DIRECT'
