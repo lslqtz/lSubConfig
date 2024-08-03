@@ -1,5 +1,4 @@
 <?php
-ini_set('user_agent', 'lSubConfig/1.0');
 ini_set('user_agent', 'lSubConfig/1.0 (Compatible with Clash.Meta)');
 ini_set('default_socket_timeout', '30');
 define('SubscribeKey', array('DefaultSubscribeKey'));
