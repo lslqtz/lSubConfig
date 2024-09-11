@@ -170,6 +170,8 @@ rules:
     - 'DOMAIN-SUFFIX,steamcdn-a.akamaihd.net,DIRECT'
     - 'DOMAIN-SUFFIX,steamcontent.com,DIRECT'
 
+    - 'DOMAIN-SUFFIX,jpush.cn,DIRECT'
+
     # Alipay
     - 'DOMAIN-KEYWORD,alipay,DIRECT'
     - 'DOMAIN-SUFFIX,alipay-corp.com,DIRECT'
