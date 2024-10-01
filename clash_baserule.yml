@@ -1,18 +1,23 @@
+log-level: 'warning'
+mode: 'rule'
+ipv6: true
 mixed-port: 7890
 allow-lan: ----lAllowLAN----
+tcp-concurrent: false
 bind-address: ----lBindAddress----
-mode: rule
-log-level: warning
+geo-update-interval: 24
+keep-alive-interval: 3600
 external-controller: '127.0.0.1:9090'
 
 dns:
     enable: true
     ipv6: true
-    listen: '127.0.0.1:53'
+    listen: '127.0.0.1:5353'
     use-hosts: true
-    nameserver: ['https://cloudflare-dns.com/dns-query']
-    fallback: ['https://dns.google/dns-query']
-    fallback-filter: { geoip: true, geoip-code: CN, ipcidr: [240.0.0.0/4] }
+    nameserver: ['system']
+    default-nameserver: ['119.29.29.29']
+    #fallback: ['https://dns.google/dns-query']
+    #fallback-filter: { geoip: true, geoip-code: CN, ipcidr: [240.0.0.0/4] }
 
 proxies:
     ----lPROXIES----
