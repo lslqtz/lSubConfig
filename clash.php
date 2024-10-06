@@ -14,7 +14,7 @@ define('SubscribeCache', 3600); // Seconds or null.
 define('SubscribeUpdateInterval', 12); // Hours or null.
 define('SubscribeAutoUseLowLatencyOnly', true); // 默认仅使用 LowLatency 节点作为自动节点.
 define('SubscribeIgnoreKeyword_Auto', array('IPv6')); // 不使用仅 IPv6 节点作为自动节点.
-define('SubscribeIgnoreKeyword', array('套餐', '到期', '流量', '重置', '官网', '最新', '以上', '以下'));
+define('SubscribeIgnoreKeyword', array('套餐', '到期', '流量', '重置', '官网', '最新', '以上', '以下', '永久'));
 define('SubscribeUserInfoReturn', true);
 define('SubscribeUserInfoReturnAll', false);
 define('DefaultFlag', 'clash');
