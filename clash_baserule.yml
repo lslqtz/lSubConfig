@@ -230,6 +230,8 @@ rules:
     - 'DOMAIN-SUFFIX,pubg.com,🇺🇳海外被墙网站'
 
     # Garena
+    - 'IP-ASN,131634,🇺🇳海外被墙网站' # Stash
+    - 'IP-ASN,131634,🇺🇳海外被墙网站' # Meta
     - 'DOMAIN-SUFFIX,garena.co.id,🇺🇳海外被墙网站'
     - 'DOMAIN-SUFFIX,garena.co.th,🇺🇳海外被墙网站'
     - 'DOMAIN-SUFFIX,garena.com,🇺🇳海外被墙网站'
@@ -1551,6 +1553,6 @@ rules:
     - 'IP-CIDR6,fc00::/7,DIRECT,no-resolve'
     - 'IP-CIDR6,fe80::/10,DIRECT,no-resolve'
     - 'IP-CIDR6,fd00::/8,DIRECT,no-resolve'
-    - 'IP-CIDR,119.29.29.29/32,🇨🇳全局回国节点,no-resolve'
+    - 'IP-CIDR,119.29.29.29/32,🇨🇳国内全局,no-resolve'
     - 'GEOIP,CN,🇨🇳国内全局'
     - 'MATCH,⚓️其它海外流量'
