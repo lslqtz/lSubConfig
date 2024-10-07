@@ -6,7 +6,7 @@ allow-lan: ----lAllowLAN----
 tcp-concurrent: false
 bind-address: ----lBindAddress----
 geo-update-interval: 24
-keep-alive-interval: 3600
+keep-alive-interval: 1800
 external-controller: '127.0.0.1:9090'
 
 dns:
@@ -23,21 +23,21 @@ proxies:
     ----lPROXIES----
 
 proxy-groups:
-    - { name: '🇺🇳全局出国节点', type: 'select', proxies: ['♾️自动出国节点', DIRECT, ----lPROXIESNAME----], lazy: true, interval: 3600, timeout: 5000, benchmark-timeout: 5, url: 'http://www.gstatic.com/generate_204', benchmark-url: 'http://www.gstatic.com/generate_204' }
-    - { name: '🇨🇳全局回国节点', type: 'select', proxies: [DIRECT, ----lPROXIESNAME_CN----], lazy: true, interval: 3600, timeout: 5000, benchmark-timeout: 5, url: 'http://baidu.com', benchmark-url: 'http://baidu.com' }
-    - { name: '♾️自动出国节点', type: 'url-test', proxies: [----lPROXIESNAME_AUTO----], lazy: true, interval: 3600, tolerance: 300, timeout: 5000, benchmark-timeout: 5, url: 'http://www.gstatic.com/generate_204', benchmark-url: 'http://www.gstatic.com/generate_204' }
-    #- { name: '⚖️负载均衡节点', type: 'load-balance', proxies: [----lPROXIESNAME_AUTO----], lazy: true, interval: 3600, tolerance: 300, timeout: 5000, benchmark-timeout: 5, strategy: 'round-robin', url: 'http://www.gstatic.com/generate_204', benchmark-url: 'http://www.gstatic.com/generate_204' }
-    - { name: '🇺🇳海外被墙网站', type: 'select', proxies: ['🇺🇳全局出国节点', DIRECT, '♾️自动出国节点', ----lPROXIESNAME----], lazy: true, interval: 3600, timeout: 5000, benchmark-timeout: 5, url: 'http://www.gstatic.com/generate_204', benchmark-url: 'http://www.gstatic.com/generate_204' }
-    - { name: '⚓️其它海外流量', type: 'select', proxies: ['🇺🇳全局出国节点', DIRECT, '♾️自动出国节点', ----lPROXIESNAME----], lazy: true, interval: 3600, timeout: 5000, benchmark-timeout: 5, url: 'http://www.gstatic.com/generate_204', benchmark-url: 'http://www.gstatic.com/generate_204' }
-    - { name: '🇺🇳海外流媒体', type: 'select', proxies: ['🇺🇳全局出国节点', DIRECT, '♾️自动出国节点', ----lPROXIESNAME----], lazy: true, interval: 3600, timeout: 5000, benchmark-timeout: 5, url: 'http://www.gstatic.com/generate_204', benchmark-url: 'http://www.gstatic.com/generate_204' }
-    - { name: '🇺🇳Netflix', type: 'select', proxies: ['🇺🇳全局出国节点', DIRECT, '♾️自动出国节点', ----lPROXIESNAME----], lazy: true, interval: 3600, timeout: 5000, benchmark-timeout: 5, url: 'http://www.gstatic.com/generate_204', benchmark-url: 'http://www.gstatic.com/generate_204' }
-    - { name: '🎮Sbeam', type: 'select', proxies: ['🇺🇳全局出国节点', DIRECT, '♾️自动出国节点', ----lPROXIESNAME----], lazy: true, interval: 3600, timeout: 5000, benchmark-timeout: 5, url: 'http://www.gstatic.com/generate_204', benchmark-url: 'http://www.gstatic.com/generate_204' }
-    - { name: '⚡Speedtest', type: 'select', proxies: [DIRECT, '🇺🇳全局出国节点', '♾️自动出国节点', ----lPROXIESNAME----], lazy: true, interval: 3600, timeout: 5000, benchmark-timeout: 5, url: 'http://www.gstatic.com/generate_204', benchmark-url: 'http://www.gstatic.com/generate_204' }
-    - { name: '🇨🇳国内全局', type: 'select', proxies: [DIRECT, '🇨🇳全局回国节点'], lazy: true, interval: 3600, timeout: 5000, benchmark-timeout: 5, url: 'http://baidu.com', benchmark-url: 'http://baidu.com' }
-    - { name: '🇨🇳国内流媒体', type: 'select', proxies: [DIRECT, '🇨🇳全局回国节点'], lazy: true, interval: 3600, timeout: 5000, benchmark-timeout: 5, url: 'http://baidu.com', benchmark-url: 'http://baidu.com' }
-    - { name: '🇨🇳IP属地分流', type: 'select', proxies: [DIRECT, '🇨🇳全局回国节点', '🇺🇳全局出国节点', '♾️自动出国节点', ----lPROXIESNAME----], lazy: true, interval: 3600, timeout: 5000, benchmark-timeout: 5, url: 'http://baidu.com', benchmark-url: 'http://baidu.com' }
-    - { name: '🍺BILIBILI', type: 'select', proxies: [DIRECT, '🇨🇳全局回国节点'], lazy: true, interval: 3600, timeout: 5000, benchmark-timeout: 5, url: 'http://baidu.com', benchmark-url: 'http://baidu.com' }
-    - { name: '🍺BILIBILI直播', type: 'select', proxies: [DIRECT, '🇨🇳全局回国节点'], lazy: true, interval: 3600, timeout: 5000, benchmark-timeout: 5, url: 'http://baidu.com', benchmark-url: 'http://baidu.com' }
+    - { name: '🇺🇳全局出国节点', type: 'select', proxies: ['♾️自动出国节点', DIRECT, ----lPROXIESNAME----], lazy: true, interval: 7200, timeout: 5000, benchmark-timeout: 5, url: 'http://www.gstatic.com/generate_204', benchmark-url: 'http://www.gstatic.com/generate_204' }
+    - { name: '🇨🇳全局回国节点', type: 'select', proxies: [DIRECT, ----lPROXIESNAME_CN----], lazy: true, interval: 7200, timeout: 5000, benchmark-timeout: 5, url: 'http://baidu.com', benchmark-url: 'http://baidu.com' }
+    - { name: '♾️自动出国节点', type: 'url-test', proxies: [----lPROXIESNAME_AUTO----], lazy: true, interval: 7200, tolerance: 300, timeout: 5000, benchmark-timeout: 5, url: 'http://www.gstatic.com/generate_204', benchmark-url: 'http://www.gstatic.com/generate_204' }
+    #- { name: '⚖️负载均衡节点', type: 'load-balance', proxies: [----lPROXIESNAME_AUTO----], lazy: true, interval: 7200, tolerance: 300, timeout: 5000, benchmark-timeout: 5, strategy: 'round-robin', url: 'http://www.gstatic.com/generate_204', benchmark-url: 'http://www.gstatic.com/generate_204' }
+    - { name: '🇺🇳海外被墙网站', type: 'select', proxies: ['🇺🇳全局出国节点', DIRECT, '♾️自动出国节点', ----lPROXIESNAME----], lazy: true, interval: 7200, timeout: 5000, benchmark-timeout: 5, url: 'http://www.gstatic.com/generate_204', benchmark-url: 'http://www.gstatic.com/generate_204' }
+    - { name: '⚓️其它海外流量', type: 'select', proxies: ['🇺🇳全局出国节点', DIRECT, '♾️自动出国节点', ----lPROXIESNAME----], lazy: true, interval: 7200, timeout: 5000, benchmark-timeout: 5, url: 'http://www.gstatic.com/generate_204', benchmark-url: 'http://www.gstatic.com/generate_204' }
+    - { name: '🇺🇳海外流媒体', type: 'select', proxies: ['🇺🇳全局出国节点', DIRECT, '♾️自动出国节点', ----lPROXIESNAME----], lazy: true, interval: 7200, timeout: 5000, benchmark-timeout: 5, url: 'http://www.gstatic.com/generate_204', benchmark-url: 'http://www.gstatic.com/generate_204' }
+    - { name: '🇺🇳Netflix', type: 'select', proxies: ['🇺🇳全局出国节点', DIRECT, '♾️自动出国节点', ----lPROXIESNAME----], lazy: true, interval: 7200, timeout: 5000, benchmark-timeout: 5, url: 'http://www.gstatic.com/generate_204', benchmark-url: 'http://www.gstatic.com/generate_204' }
+    - { name: '🎮Sbeam', type: 'select', proxies: ['🇺🇳全局出国节点', DIRECT, '♾️自动出国节点', ----lPROXIESNAME----], lazy: true, interval: 7200, timeout: 5000, benchmark-timeout: 5, url: 'http://www.gstatic.com/generate_204', benchmark-url: 'http://www.gstatic.com/generate_204' }
+    - { name: '⚡Speedtest', type: 'select', proxies: [DIRECT, '🇺🇳全局出国节点', '♾️自动出国节点', ----lPROXIESNAME----], lazy: true, interval: 7200, timeout: 5000, benchmark-timeout: 5, url: 'http://www.gstatic.com/generate_204', benchmark-url: 'http://www.gstatic.com/generate_204' }
+    - { name: '🇨🇳国内全局', type: 'select', proxies: [DIRECT, '🇨🇳全局回国节点'], lazy: true, interval: 7200, timeout: 5000, benchmark-timeout: 5, url: 'http://baidu.com', benchmark-url: 'http://baidu.com' }
+    - { name: '🇨🇳国内流媒体', type: 'select', proxies: [DIRECT, '🇨🇳全局回国节点'], lazy: true, interval: 7200, timeout: 5000, benchmark-timeout: 5, url: 'http://baidu.com', benchmark-url: 'http://baidu.com' }
+    - { name: '🇨🇳IP属地分流', type: 'select', proxies: [DIRECT, '🇨🇳全局回国节点', '🇺🇳全局出国节点', '♾️自动出国节点', ----lPROXIESNAME----], lazy: true, interval: 7200, timeout: 5000, benchmark-timeout: 5, url: 'http://baidu.com', benchmark-url: 'http://baidu.com' }
+    - { name: '🍺BILIBILI', type: 'select', proxies: [DIRECT, '🇨🇳全局回国节点'], lazy: true, interval: 7200, timeout: 5000, benchmark-timeout: 5, url: 'http://baidu.com', benchmark-url: 'http://baidu.com' }
+    - { name: '🍺BILIBILI直播', type: 'select', proxies: [DIRECT, '🇨🇳全局回国节点'], lazy: true, interval: 7200, timeout: 5000, benchmark-timeout: 5, url: 'http://baidu.com', benchmark-url: 'http://baidu.com' }
 
 script:
     shortcuts:
