@@ -14,6 +14,7 @@ define('SubscribeCache', 3600); // Seconds or null.
 define('SubscribeUpdateInterval', 12); // Hours or null.
 define('SubscribeAutoUseLowLatencyOnly', true); // 默认仅使用 LowLatency 节点作为自动节点.
 define('SubscribeIgnoreKeyword_Auto', array('IPv6')); // 不使用仅 IPv6 节点作为自动节点.
+define('SubscribeIgnoreKeyword_AutoExtend', array('IEPL')); // 适用于非 HQ (High Quality) 的情况.
 define('SubscribeIgnoreKeyword', array('套餐', '到期', '流量', '重置', '官网', '最新', '以上', '以下', '永久'));
 define('SubscribeUserInfoReturn', true);
 define('SubscribeUserInfoReturnAll', false);
@@ -49,13 +50,20 @@ function NameFilter(array $value): bool {
 	}
 	return true;
 }
-function NameFilter_Auto(array $value): bool {
+function NameFilter_Auto(array $value, bool $highQuality): bool {
 	if (!isset($value['name'])) {
 		return false;
 	}
 	foreach (SubscribeIgnoreKeyword_Auto as $subscribeIgnoreKeywordAuto) {
 		if (stripos($value['name'], $subscribeIgnoreKeywordAuto) !== false) {
 			return false;
+		}
+	}
+	if (!$highQuality) {
+		foreach (SubscribeIgnoreKeyword_AutoExtend as $subscribeIgnoreKeywordAutoExtend) {
+			if (stripos($value['name'], $subscribeIgnoreKeywordAutoExtend) !== false) {
+				return false;
+			}
 		}
 	}
 	return true;
@@ -79,7 +87,7 @@ function FlowFilter(array $value): bool {
 	return true;
 }
 function AddProxyNameToArr(array &$value) {
-	global $reqFlag, $proxiesName, $proxiesNameAuto, $proxiesNameLowLatency, $proxiesNameCN;
+	global $reqFlag, $hqMode, $proxiesName, $proxiesNameAuto, $proxiesNameLowLatency, $proxiesNameCN;
 	if ($reqFlag === 'stash') {
 		$issetPassword = (isset($value['password']));
 		$issetAuth = (isset($value['auth']));
@@ -101,7 +109,7 @@ function AddProxyNameToArr(array &$value) {
 	foreach (SubscribeBaseRuleProxiesNameMatchList_LowLatency as $lowLatencyMatch) {
 		if (stripos($value['name'], $lowLatencyMatch) !== false) {
 			$proxiesNameLowLatency[] = $value['name'];
-			if (SubscribeAutoUseLowLatencyOnly && NameFilter_Auto($value)) {
+			if (SubscribeAutoUseLowLatencyOnly && NameFilter_Auto($value, $hqMode)) {
 				$proxiesNameAuto[] = $value['name'];
 			}
 			break;
@@ -114,7 +122,7 @@ function AddProxyNameToArr(array &$value) {
 			$value['url'] = "'http://baidu.com'";
 			$value['benchmark-url'] = "'http://baidu.com'";
 		}
-	} else if (!SubscribeAutoUseLowLatencyOnly && NameFilter_Auto($value)) {
+	} else if (!SubscribeAutoUseLowLatencyOnly && NameFilter_Auto($value, $hqMode)) {
 		$proxiesNameAuto[] = $value['name'];
 	}
 }
@@ -143,6 +151,7 @@ if (SubscribeCache !== null) {
 $allowLAN = ((isset($_GET['allow_lan']) && $_GET['allow_lan'] === 'true') ? 'true' : 'false');
 $bindAddress = ((!empty($_GET['bind_address'])) ? trim(strtolower($_GET['bind_address'])) : '127.0.0.1');
 $useReqFlag = ((isset(RewriteFlag[$reqFlag])) ? RewriteFlag[$reqFlag] : $reqFlag);
+$hqMode = ((isset($_GET['hq']) && $_GET['hq'] === 'true') ? true : false);
 if (!empty($_GET['mode'])) {
 	$subscribeBaseRuleMode = trim(strtolower($_GET['mode']));
 	$subscribeBaseRuleFilename = str_replace('-{ruleMode}', "-{$subscribeBaseRuleMode}", SubscribeBaseRuleFilename);
