@@ -345,7 +345,7 @@ foreach ($proxies as $proxy) {
 	}
 }
 $proxiesStr = trim($proxiesStr);
-if (empty($proxiesStr)) {
+if ($subscribeURLCount > 0 && empty($proxiesStr)) {
 	die();
 }
 $proxiesNameStr = implode(', ', $proxiesName);
