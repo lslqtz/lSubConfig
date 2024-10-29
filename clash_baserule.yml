@@ -53,11 +53,10 @@ rule-providers:
         url: 'https://raw.githubusercontent.com/Semporia/TikTok-Unlock/master/Surge/TikTok.list'
 
 rules:
-    - 'DST-PORT,22,DIRECT,no-resolve'
-    - 'SCRIPT,QUIC,REJECT,no-resolve' # Clash
-    - 'SCRIPT,QUIC,REJECT,no-resolve' # Stash
-    - 'AND,((NETWORK,UDP),(DST-PORT,443,no-resolve)),REJECT' # Meta
-    - 'DOMAIN-SUFFIX,dmhy.best,DIRECT'
+    - 'DST-PORT,22,DIRECT'
+    - 'SCRIPT,QUIC,REJECT' # Clash
+    - 'SCRIPT,QUIC,REJECT' # Stash
+    - 'AND,((NETWORK,UDP),(DST-PORT,443)),REJECT' # Meta
 
     # Apple ID
     #- 'DOMAIN-SUFFIX,gsa.apple.com,🇺🇳海外被墙网站'
@@ -175,7 +174,9 @@ rules:
     - 'DOMAIN-SUFFIX,steamcdn-a.akamaihd.net,DIRECT'
     - 'DOMAIN-SUFFIX,steamcontent.com,DIRECT'
 
-    - 'DOMAIN-SUFFIX,jpush.cn,DIRECT'
+    # Adobe
+    - 'DOMAIN-SUFFIX,adobe.io,REJECT'
+    - 'DOMAIN,lcs-cops.adobe.io,DIRECT'
 
     # Alipay
     - 'DOMAIN-KEYWORD,alipay,DIRECT'
@@ -230,8 +231,8 @@ rules:
     - 'DOMAIN-SUFFIX,pubg.com,🇺🇳海外被墙网站'
 
     # Garena
-    - 'IP-ASN,131634,🇺🇳海外被墙网站' # Stash
-    - 'IP-ASN,131634,🇺🇳海外被墙网站' # Meta
+    - 'IP-ASN,131634,🇺🇳海外被墙网站,no-resolve' # Stash
+    - 'IP-ASN,131634,🇺🇳海外被墙网站,no-resolve' # Meta
     - 'DOMAIN-SUFFIX,garena.co.id,🇺🇳海外被墙网站'
     - 'DOMAIN-SUFFIX,garena.co.th,🇺🇳海外被墙网站'
     - 'DOMAIN-SUFFIX,garena.com,🇺🇳海外被墙网站'
@@ -248,6 +249,7 @@ rules:
     - 'DOMAIN-SUFFIX,cdngarenanow-a.akamaihd.net,🇺🇳海外被墙网站'
     - 'DOMAIN-SUFFIX,dlmobilegarena-a.akamaihd.net,🇺🇳海外被墙网站'
 
+    - 'DOMAIN-SUFFIX,jpush.cn,DIRECT'
     - 'DOMAIN-SUFFIX,services.googleapis.cn,🇺🇳海外被墙网站'
     - 'DOMAIN-SUFFIX,xn--ngstr-lra8j.com,🇺🇳海外被墙网站'
     - 'DOMAIN-SUFFIX,googleapis.com,🇺🇳海外被墙网站'
@@ -1088,7 +1090,7 @@ rules:
     - 'DOMAIN,szshort.weixin.qq.com,🇨🇳IP属地分流'
     - 'DOMAIN,zhihu-web-analytics.zhihu.com,🇨🇳IP属地分流'
     - 'DOMAIN,api.zhihu.com,🇨🇳IP属地分流'
-    - 'IP-CIDR,103.41.167.0/24,🇨🇳IP属地分流'
+    - 'IP-CIDR,103.41.167.0/24,🇨🇳IP属地分流,no-resolve'
     - 'DOMAIN-SUFFIX,gjfzpt.cn,REJECT'
     - 'DOMAIN-KEYWORD,core-c-lq,🇨🇳IP属地分流'
     - 'DOMAIN-KEYWORD,core-lq,🇨🇳IP属地分流'
@@ -1114,9 +1116,9 @@ rules:
     - 'DOMAIN-SUFFIX,youku.com,🇨🇳国内流媒体'
     - 'DOMAIN-KEYWORD,qiyi,🇨🇳国内流媒体'
     - 'DOMAIN-SUFFIX,qy.net,🇨🇳国内流媒体'
-    - 'IP-CIDR,101.227.0.0/16,🇨🇳国内流媒体'
-    - 'IP-CIDR,101.224.0.0/13,🇨🇳国内流媒体'
-    - 'IP-CIDR,119.176.0.0/12,🇨🇳国内流媒体'
+    - 'IP-CIDR,101.227.0.0/16,🇨🇳国内流媒体,no-resolve'
+    - 'IP-CIDR,101.224.0.0/13,🇨🇳国内流媒体,no-resolve'
+    - 'IP-CIDR,119.176.0.0/12,🇨🇳国内流媒体,no-resolve'
     - 'DOMAIN-SUFFIX,api.mob.app.letv.com,🇨🇳国内流媒体'
     - 'DOMAIN-KEYWORD,nowtv100,🇨🇳国内流媒体'
     - 'DOMAIN-KEYWORD,rthklive,🇨🇳国内流媒体'
@@ -1125,7 +1127,7 @@ rules:
     - 'DOMAIN-SUFFIX,music.126.net,🇨🇳国内流媒体'
     - 'DOMAIN-SUFFIX,music.163.com,🇨🇳国内流媒体'
     - 'DOMAIN-SUFFIX,vv.video.qq.com,🇨🇳国内流媒体'
-    - 'IP-CIDR,106.11.0.0/16,🇨🇳国内流媒体'
+    - 'IP-CIDR,106.11.0.0/16,🇨🇳国内流媒体,no-resolve'
     - 'DOMAIN-SUFFIX,acfun.cn,🇨🇳国内流媒体'
     - 'DOMAIN-SUFFIX,acfun.com,🇨🇳国内流媒体'
     - 'DOMAIN-SUFFIX,aixifan.com,🇨🇳国内流媒体'
@@ -1237,13 +1239,13 @@ rules:
     - 'DOMAIN-SUFFIX,upos-hz-mirrorakam.akamaized.net,🍺BILIBILI'
     - 'DOMAIN-SUFFIX,uposdash-302-bilivideo.yfcdn.net,🍺BILIBILI'
     - 'DOMAIN-SUFFIX,yo9.com,🍺BILIBILI'
-    - 'IP-CIDR,106.75.74.76/32,🍺BILIBILI'
-    - 'IP-CIDR,111.206.25.147/32,🍺BILIBILI'
-    - 'IP-CIDR,119.3.238.64/32,🍺BILIBILI'
-    - 'IP-CIDR,120.92.108.182/32,🍺BILIBILI'
-    - 'IP-CIDR,120.92.113.99/32,🍺BILIBILI'
-    - 'IP-CIDR,120.92.153.217/32,🍺BILIBILI'
-    - 'IP-CIDR,134.175.207.130/32,🍺BILIBILI'
+    - 'IP-CIDR,106.75.74.76/32,🍺BILIBILI,no-resolve'
+    - 'IP-CIDR,111.206.25.147/32,🍺BILIBILI,no-resolve'
+    - 'IP-CIDR,119.3.238.64/32,🍺BILIBILI,no-resolve'
+    - 'IP-CIDR,120.92.108.182/32,🍺BILIBILI,no-resolve'
+    - 'IP-CIDR,120.92.113.99/32,🍺BILIBILI,no-resolve'
+    - 'IP-CIDR,120.92.153.217/32,🍺BILIBILI,no-resolve'
+    - 'IP-CIDR,134.175.207.130/32,🍺BILIBILI,no-resolve'
     - 'DOMAIN,netease.ugcvideoss.ourdvs.com,🇨🇳国内流媒体'
     - 'DOMAIN-SUFFIX,api.iplay.163.com,🇨🇳国内流媒体'
     - 'DOMAIN-SUFFIX,apm.music.163.com,🇨🇳国内流媒体'
