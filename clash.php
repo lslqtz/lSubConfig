@@ -88,13 +88,14 @@ function FlowFilter(array $value): bool {
 }
 function AddProxyNameToArr(array &$value) {
 	global $reqFlag, $hqMode, $proxiesName, $proxiesNameAuto, $proxiesNameLowLatency, $proxiesNameCN;
+	$issetAuth = (isset($value['auth']));
+	$issetPassword = (isset($value['password']));
+	if ($issetAuth && !$issetPassword) {
+		$value['password'] = $value['auth'];
+	}
 	if ($reqFlag === 'stash') {
-		$issetPassword = (isset($value['password']));
-		$issetAuth = (isset($value['auth']));
 		if ($issetPassword && !$issetAuth) {
 			$value['auth'] = $value['password'];
-		} else if ($issetAuth && !$issetPassword) {
-			$value['password'] = $value['auth'];
 		}
 	}
 	$proxiesName[] = "'" . trim($value['name'], "'") . "'";
@@ -102,7 +103,7 @@ function AddProxyNameToArr(array &$value) {
 		$value['timeout'] = 5000;
 		$value['url'] = "'http://www.gstatic.com/generate_204'";
 	}
-	if (!isset($value['benchmark-timeout'], $value['benchmark-url'])) {
+	if ($reqFlag === 'stash' && !isset($value['benchmark-timeout'], $value['benchmark-url'])) {
 		$value['benchmark-timeout'] = 5;
 		$value['benchmark-url'] = "'http://www.gstatic.com/generate_204'";
 	}
