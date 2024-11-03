@@ -12,6 +12,7 @@ define('SubscribeBaseRuleProxiesNameMatchList_LowLatency', array('🇭🇰', 'HK
 define('SubscribeBaseRuleProxiesNameTag_CN', '----lPROXIESNAME_CN----');
 define('SubscribeCache', 3600); // Seconds or null.
 define('SubscribeUpdateInterval', 12); // Hours or null.
+define('SubscribeIgnoreError', false); // 即使所有订阅发生错误也返回配置文件. 适用于自带节点的 BaseRule.
 define('SubscribeAutoUseLowLatencyOnly', true); // 默认仅使用 LowLatency 节点作为自动节点.
 define('SubscribeIgnoreKeyword_Auto', array('IPv6')); // 不使用仅 IPv6 节点作为自动节点.
 define('SubscribeIgnoreKeyword_AutoExtend', array('IEPL')); // 适用于非 HQ (High Quality) 的情况.
@@ -346,7 +347,7 @@ foreach ($proxies as $proxy) {
 	}
 }
 $proxiesStr = trim($proxiesStr);
-if ($subscribeURLCount > 0 && empty($proxiesStr)) {
+if (!SubscribeIgnoreError && $subscribeURLCount > 0 && empty($proxiesStr)) {
 	die();
 }
 $proxiesNameStr = implode(', ', $proxiesName);
