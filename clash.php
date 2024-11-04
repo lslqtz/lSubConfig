@@ -1,4 +1,5 @@
 <?php
+set_time_limit(30);
 ini_set('user_agent', 'lSubConfig/1.0 (Compatible with Clash.Meta)');
 ini_set('default_socket_timeout', '30');
 define('SubscribeKey', array('DefaultSubscribeKey'));
@@ -148,7 +149,13 @@ if (SubscribeCache !== null) {
 		die("Bad permission.\n");
 	}
 	$lockRes = fopen('SubscribeCache/clash.lock', 'w');
-	flock($lockRes, LOCK_EX);
+	$waitSec = 0;
+	while (!flock($lockRes, LOCK_EX | LOCK_NB)) {
+		if (($waitSec++) > 12) {
+			flock($lockRes, LOCK_UN);
+		}
+		sleep(1);
+	}
 }
 $allowLAN = ((isset($_GET['allow_lan']) && $_GET['allow_lan'] === 'true') ? 'true' : 'false');
 $bindAddress = ((!empty($_GET['bind_address'])) ? trim(strtolower($_GET['bind_address'])) : '127.0.0.1');
