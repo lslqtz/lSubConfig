@@ -53,10 +53,10 @@ rule-providers:
         url: 'https://raw.githubusercontent.com/Semporia/TikTok-Unlock/master/Surge/TikTok.list'
 
 rules:
-    - 'DST-PORT,22,DIRECT'
-    - 'SCRIPT,QUIC,REJECT' # Clash
-    - 'SCRIPT,QUIC,REJECT' # Stash
-    - 'AND,((NETWORK,UDP),(DST-PORT,443)),REJECT' # Meta
+    - 'DST-PORT,22,DIRECT,no-resolve'
+    - 'SCRIPT,QUIC,REJECT,no-resolve' # Clash
+    - 'SCRIPT,QUIC,REJECT,no-resolve' # Stash
+    - 'AND,((NETWORK,UDP,no-resolve),(DST-PORT,443,no-resolve)),REJECT' # Meta
 
     # Apple ID
     #- 'DOMAIN-SUFFIX,gsa.apple.com,🇺🇳海外被墙网站'
@@ -261,6 +261,9 @@ rules:
     - 'DOMAIN-KEYWORD,facebook,🇺🇳海外被墙网站'
     - 'DOMAIN-SUFFIX,fb.me,🇺🇳海外被墙网站'
     - 'DOMAIN-SUFFIX,fbcdn.net,🇺🇳海外被墙网站'
+    - 'DOMAIN-SUFFIX,x.co,🇺🇳海外被墙网站'
+    - 'DOMAIN-SUFFIX,x.com,🇺🇳海外被墙网站'
+    - 'DOMAIN-SUFFIX,x.company,🇺🇳海外被墙网站'
     - 'DOMAIN-KEYWORD,twitter,🇺🇳海外被墙网站'
     - 'DOMAIN-KEYWORD,instagram,🇺🇳海外被墙网站'
     - 'DOMAIN-KEYWORD,dropbox,🇺🇳海外被墙网站'
@@ -534,6 +537,7 @@ rules:
     - 'DOMAIN-SUFFIX,goodreads.com,🇺🇳海外被墙网站'
     - 'DOMAIN-SUFFIX,gov,🇺🇳海外被墙网站'
     - 'DOMAIN-SUFFIX,gov.tw,🇺🇳海外被墙网站'
+    - 'DOMAIN-SUFFIX,edu.tw,🇺🇳海外被墙网站'
     - 'DOMAIN-SUFFIX,greatfire.org,🇺🇳海外被墙网站'
     - 'DOMAIN-SUFFIX,gumroad.com,🇺🇳海外被墙网站'
     - 'DOMAIN-SUFFIX,hbg.com,🇺🇳海外被墙网站'
@@ -686,6 +690,8 @@ rules:
     - 'DOMAIN-SUFFIX,urbandictionary.com,🇺🇳海外被墙网站'
     - 'DOMAIN-SUFFIX,ustream.tv,🇺🇳海外被墙网站'
     - 'DOMAIN-SUFFIX,uwants.com,🇺🇳海外被墙网站'
+    - 'DOMAIN-SUFFIX,v2ex.com,🇺🇳海外被墙网站'
+    - 'DOMAIN-SUFFIX,v2fly.com,🇺🇳海外被墙网站'
     - 'DOMAIN-SUFFIX,v2ray.com,🇺🇳海外被墙网站'
     - 'DOMAIN-SUFFIX,viber.com,🇺🇳海外被墙网站'
     - 'DOMAIN-SUFFIX,videopress.com,🇺🇳海外被墙网站'
@@ -814,7 +820,6 @@ rules:
     - 'DOMAIN-SUFFIX,webrtc.org,🇺🇳海外被墙网站'
     - 'DOMAIN-SUFFIX,whatbrowser.org,🇺🇳海外被墙网站'
     - 'DOMAIN-SUFFIX,widevine.com,🇺🇳海外被墙网站'
-    - 'DOMAIN-SUFFIX,x.company,🇺🇳海外被墙网站'
     - 'DOMAIN-SUFFIX,yt.be,🇺🇳海外被墙网站'
     - 'DOMAIN-SUFFIX,ytimg.com,🇺🇳海外被墙网站'
     - 'DOMAIN-SUFFIX,dis.gd,🇺🇳海外被墙网站'
