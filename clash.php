@@ -1,7 +1,7 @@
 <?php
 set_time_limit(30);
 ini_set('user_agent', 'lSubConfig/1.0 (Compatible with Clash.Meta)');
-ini_set('default_socket_timeout', '30');
+define('HTTPContext', stream_context_create(array('http' => array('timeout' => 6, 'method' => 'GET', 'protocol_version' => 1.1, 'header' => 'Connection: close'))));
 define('SubscribeKey', array('DefaultSubscribeKey'));
 define('SubscribeBaseRule', 'clash-{ruleMode}_baserule.yml');
 define('SubscribeBaseRuleSpace1IndentStr', '    ');
@@ -221,7 +221,7 @@ foreach (SubscribeURL as $subscribeURL => $subscribeFlagParam) {
 			}
 		}
 	}
-	$subscribeURLContent = @file($subscribeURL);
+	$subscribeURLContent = @file($subscribeURL, 0, HTTPContext);
 	if (empty($subscribeURLContent)) {
 		continue;
 	}
