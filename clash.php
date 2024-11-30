@@ -136,7 +136,7 @@ if (PHP_SAPI !== 'cli') {
 	}
 }
 $reqFlag = ((!empty($_GET['flag'])) ? trim(strtolower($_GET['flag'])) : DefaultFlag);
-$reqFeat = ((!empty($_GET['feat']) && ctype_alpha($_GET['feat'])) ? trim(strtolower($_GET['feat'])) : null);
+$reqFeat = ((!empty($_GET['feat']) && ctype_alpha($_GET['feat'])) ? trim(strtolower($_GET['feat'])) : 'default');
 if (!in_array($reqFlag, RecognizeFlag)) {
 	// 不认识的 flag, 直接拒绝响应.
 	http_response_code(403);
@@ -367,11 +367,7 @@ foreach (SupportFlag as $supportFlag) {
 	}
 	$subscribeBaseRule = preg_replace('/.*# *?' . $supportFlag . ' *?$(\r)?(\n)/im', '', $subscribeBaseRule);
 }
-if ($reqFeat !== null) {
-	$subscribeBaseRule = preg_replace('/.*# *?feat: ?(?!(' . $reqFeat . ')).*?$(\r)?(\r)?(\n)?(\n)/im', '', $subscribeBaseRule);
-} else {
-	$subscribeBaseRule = preg_replace('/.*# *?feat:.*?$(\r)?(\r)?(\n)?(\n)/im', '', $subscribeBaseRule);
-}
+$subscribeBaseRule = preg_replace('/.*# *?feat: ?(?!(' . $reqFeat . ')).*?$(\r)?(\r)?(\n)?(\n)/im', '', $subscribeBaseRule);
 if (empty($proxiesNameStr)) {
 	$subscribeBaseRule = preg_replace('/, ?' . SubscribeBaseRuleProxiesNameTag . '/m', '', $subscribeBaseRule);
 }
