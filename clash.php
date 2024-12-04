@@ -129,14 +129,14 @@ function AddProxyNameToArr(array &$value) {
 	}
 }
 header('Content-Type: text/plain; charset=UTF-8');
-$key = (isset($_GET['k']) ? trim($_GET['k']) : null);
+$key = ((isset($_GET['k']) && array_key_exists(trim($_GET['k']), SubscribeKey)) ? trim($_GET['k']) : null);
 if (PHP_SAPI !== 'cli') {
 	if ($key === null) {
 		http_response_code(404);
 		die("File not found.\n");
 	}
 }
-$keyPolicy = (($key !== null && isset(SubscribeKey[$key])) ? SubscribeKey[$key] : null);
+$keyPolicy = (($key !== null) ? SubscribeKey[$key] : null);
 $noSubscribeURLMode = ($keyPolicy !== null && isset($keyPolicy['NoSubscribeURL']) && $keyPolicy['NoSubscribeURL'] === true);
 $reqFlag = ((!empty($_GET['flag'])) ? trim(strtolower($_GET['flag'])) : DefaultFlag);
 $reqFeat = ((!empty($_GET['feat']) && ctype_alnum($_GET['feat'])) ? trim(strtolower($_GET['feat'])) : 'Default');
@@ -172,6 +172,10 @@ if (!empty($_GET['mode'])) {
 	$subscribeBaseRuleFilename = str_replace('-{ruleMode}', '', SubscribeBaseRuleFilename);
 }
 $subscribeBaseRuleMode[0] = strtoupper($subscribeBaseRuleMode[0]);
+if ($subscribeBaseRuleMode === 'Relay' && $noSubscribeURLMode) {
+	http_response_code(404);
+	die("Bad permission.\n");
+}
 if (!is_file($subscribeBaseRuleFilename)) {
 	http_response_code(404);
 	die("Bad subscribe baserule filename.\n");
@@ -372,7 +376,13 @@ foreach (SupportFlag as $supportFlag) {
 	}
 	$subscribeBaseRule = preg_replace('/.*# *?' . $supportFlag . ' *?$(\r)?(\n)/im', '', $subscribeBaseRule);
 }
-$subscribeBaseRule = preg_replace('/.*# *?feat: ?' . ($noSubscribeURLMode ? '!' : '') . '(NoSubscribeURL).*?$(\r)?(\r)?(\n)?(\n)/im', '', $subscribeBaseRule);
+if ($noSubscribeURLMode) {
+	$subscribeBaseRule = preg_replace('/.*# *?feat: ?!(NoSubscribeURL).*?$(\r)?(\r)?(\n)?(\n)/im', '', $subscribeBaseRule);
+	$subscribeBaseRule = preg_replace('/# *?feat: ?(NoSubscribeURL).*?$/im', '', $subscribeBaseRule);
+} else {
+	$subscribeBaseRule = preg_replace('/.*# *?feat: ?(NoSubscribeURL).*?$(\r)?(\r)?(\n)?(\n)/im', '', $subscribeBaseRule);
+	$subscribeBaseRule = preg_replace('/# *?feat: ?!(NoSubscribeURL).*?$/im', '', $subscribeBaseRule);
+}
 $subscribeBaseRule = preg_replace('/# *?feat: ?!(?!(' . $reqFeat . ')).*?$/im', '', $subscribeBaseRule);
 $subscribeBaseRule = preg_replace('/.*# *?feat: ?!(' . $reqFeat . ').*?$(\r)?(\r)?(\n)?(\n)/im', '', $subscribeBaseRule);
 $subscribeBaseRule = preg_replace('/.*# *?feat: ?(?!(' . $reqFeat . ')).*?$(\r)?(\r)?(\n)?(\n)/im', '', $subscribeBaseRule);
