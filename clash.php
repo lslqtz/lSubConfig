@@ -2,8 +2,8 @@
 set_time_limit(30);
 ini_set('user_agent', 'lSubConfig/1.0 (Compatible with Clash.Meta)');
 define('HTTPContext', stream_context_create(array('http' => array('timeout' => 6, 'method' => 'GET', 'protocol_version' => 1.1, 'header' => 'Connection: close'))));
-define('SubscribeKey', array('DefaultSubscribeKey'));
-define('SubscribeBaseRule', 'clash-{ruleMode}_baserule.yml');
+define('SubscribeKey', array('DefaultSubscribeKey' => null, 'DefaultSubscribeKey-NoSubscribeURL' => array('NoSubscribeURL' => true)));
+define('SubscribeBaseRuleFilename', 'clash-{ruleMode}_baserule.yml');
 define('SubscribeBaseRuleSpace1IndentStr', '    ');
 define('SubscribeBaseRuleProxiesTag', '----lPROXIES----');
 define('SubscribeBaseRuleProxiesNameTag', '----lPROXIESNAME----');
@@ -129,12 +129,15 @@ function AddProxyNameToArr(array &$value) {
 	}
 }
 header('Content-Type: text/plain; charset=UTF-8');
+$key = (isset($_GET['k']) ? trim($_GET['k']) : null);
 if (PHP_SAPI !== 'cli') {
-	if (!isset($_GET['k']) || !in_array(trim($_GET['k']), SubscribeKey)) {
+	if ($key === null) {
 		http_response_code(404);
 		die("File not found.\n");
 	}
 }
+$keyPolicy = (($key !== null && isset(SubscribeKey[$key])) ? SubscribeKey[$key] : null);
+$noSubscribeURLMode = ($keyPolicy !== null && isset($keyPolicy['NoSubscribeURL']) && $keyPolicy['NoSubscribeURL'] === true);
 $reqFlag = ((!empty($_GET['flag'])) ? trim(strtolower($_GET['flag'])) : DefaultFlag);
 $reqFeat = ((!empty($_GET['feat']) && ctype_alnum($_GET['feat'])) ? trim(strtolower($_GET['feat'])) : 'Default');
 if (!in_array($reqFlag, RecognizeFlag)) {
@@ -142,7 +145,7 @@ if (!in_array($reqFlag, RecognizeFlag)) {
 	http_response_code(403);
 	die("Bad flag.\n");
 }
-if (SubscribeCache !== null) {
+if (SubscribeCache !== null && !$noSubscribeURLMode) {
 	if (!is_dir('SubscribeCache') && !mkdir('SubscribeCache')) {
 		// 没有权限创建缓存文件夹.
 		http_response_code(403);
@@ -183,144 +186,146 @@ $proxiesNameCN = array();
 $subscribeURLCount = (count(SubscribeURL));
 header('Content-Disposition: attachment; filename="Subscribe (' .  $subscribeBaseRuleMode . ')"');
 header('profile-update-interval: ' . SubscribeUpdateInterval);
-foreach (SubscribeURL as $subscribeURL => $subscribeFlagParam) {
-	unset($ruleSpaceIndentStr, $ruleSpaceIndentStrWithoutMinus, $ruleSpace3IndentStr);
-	$ruleSpaceIndent = 0;
-	$detectProxies = -2; // -2: 等待检测代理标志, -1: 正在检测代理标志, 0: 已检测并提取代理.
-	if ($subscribeFlagParam !== null) {
-		preg_match_all('/{rep:(.*?)\|(.*?)}/', $subscribeFlagParam, $repMatches);
-		if (count($repMatches) > 2) {
-			foreach ($repMatches[1] as $repKey => $repStr) {
-				if ($useReqFlag === trim($repStr)) {
-					$useReqFlag = trim($repMatches[2][$repKey]);
+if (!$noSubscribeURLMode) {
+	foreach (SubscribeURL as $subscribeURL => $subscribeFlagParam) {
+		unset($ruleSpaceIndentStr, $ruleSpaceIndentStrWithoutMinus, $ruleSpace3IndentStr);
+		$ruleSpaceIndent = 0;
+		$detectProxies = -2; // -2: 等待检测代理标志, -1: 正在检测代理标志, 0: 已检测并提取代理.
+		if ($subscribeFlagParam !== null) {
+			preg_match_all('/{rep:(.*?)\|(.*?)}/', $subscribeFlagParam, $repMatches);
+			if (count($repMatches) > 2) {
+				foreach ($repMatches[1] as $repKey => $repStr) {
+					if ($useReqFlag === trim($repStr)) {
+						$useReqFlag = trim($repMatches[2][$repKey]);
+						break;
+					}
+				}
+			}
+			if (stripos($subscribeURL, str_replace(array('{useReqFlag}', '&', '?'), '', $subscribeFlagParam)) === false) {
+				$subscribeURL .= str_replace('{useReqFlag}', $useReqFlag, $subscribeFlagParam);
+			}
+		}
+		$canCache = false;
+		$useCache = false;
+		if (SubscribeCache !== null) {
+			if (stripos($subscribeURL, 'http') !== false) {
+				$canCache = true;
+				$subscribeURLDomain = str_replace('.', '-', ParseDomain($subscribeURL));
+				$subscribeURLSHA1 = sha1($subscribeURL);
+				if (!empty($subscribeURLDomain) && !empty($subscribeURLSHA1)) {
+					$subscribeCacheFilename = "SubscribeCache/{$useReqFlag}_{$subscribeURLDomain}_{$subscribeURLSHA1}.txt";
+					if (is_file($subscribeCacheFilename) && ($cacheMTime = filemtime($subscribeCacheFilename)) !== false) {
+						if (($cacheMTime + SubscribeCache) < time()) {
+							unlink($subscribeCacheFilename);
+						} else {
+							$useCache = true;
+							$subscribeURL = $subscribeCacheFilename;
+						}
+					}
+				}
+			}
+		}
+		$subscribeURLContent = @file($subscribeURL, 0, HTTPContext);
+		if (empty($subscribeURLContent)) {
+			continue;
+		}
+		if (!$useCache) {
+			$subscribeUserInfo = GetHTTPHeader('subscription-userinfo');
+			if (SubscribeUserInfoReturn && !empty($subscribeUserInfo) && (SubscribeUserInfoReturnAll || $subscribeURLCount === 1)) {
+				header($subscribeUserInfo, false);
+			}
+			if ($canCache) {
+				if (!empty($subscribeUserInfo)) {
+					array_unshift($subscribeURLContent, "{$subscribeUserInfo}\n");
+				}
+				file_put_contents($subscribeCacheFilename, $subscribeURLContent);
+			}
+		}
+		if (!in_array($reqFlag, SupportFlag)) {
+			// 不支持的 flag, 若订阅设置为 Allow Flag, 则直接转发任一原始响应.
+			if ($subscribeFlagParam !== null) {
+				die(implode($subscribeURLContent));
+			}
+			continue;
+		}
+		$objMode = false;
+		$lastProxiesKey = null;
+		foreach ($subscribeURLContent as $subscribeLine) {
+			if (empty($subscribeLine)) {
+				continue;
+			}
+			if (SubscribeUserInfoReturn && $useCache && (SubscribeUserInfoReturnAll || $subscribeURLCount === 1) && ($subscribeUserInfo = stristr($subscribeLine, 'subscription-userinfo')) !== false) {
+				header($subscribeUserInfo, false);
+				continue;
+			}
+			$trimSubscribeLine = trim($subscribeLine);
+			if ($detectProxies === -2 && $trimSubscribeLine === 'proxies:') {
+				// 抓住代理节点标志!
+				$detectProxies = -1;
+			} else if ($detectProxies === -1) {
+				if ($ruleSpaceIndent === 0 && (($spaceIndent = strspn($subscribeLine, ' ', 0, 8)) > 0)) {
+					$ruleSpaceIndent = $spaceIndent;
+					$ruleSpaceIndentStr = str_repeat(' ', $ruleSpaceIndent);
+					$ruleSpaceIndentStrWithoutMinus = '-' . str_repeat(' ', ($ruleSpaceIndent - 1));
+					$ruleSpace3IndentStr = str_repeat(' ', ($ruleSpaceIndent * 3));
+				}
+				if (!isset($ruleSpaceIndentStr) || stripos($subscribeLine, ($subscribeLine[0] === '-' ? $ruleSpaceIndentStrWithoutMinus : $ruleSpaceIndentStr)) === 0) {
+					if ($trimSubscribeLine[0] === '-') {
+						$proxiesCount++;
+						if (stripos($trimSubscribeLine, '{') !== false && stripos($trimSubscribeLine, '}') !== false) {
+							$objMode = true;
+						}
+					}
+					if ($objMode) {
+						$subscribeLineObjArr = explode(',', substr(substr(trim($trimSubscribeLine, '- '), 1), 0, -1));
+						$tmpObjValue = '';
+						$lCount = 0;
+						foreach ($subscribeLineObjArr as $objValue) {
+							if (($tmpLCount = substr_count($objValue, '{') - substr_count($objValue, '}')) !== 0) {
+								$lCount += $tmpLCount;
+								$tmpObjValue .= ", {$objValue}";
+								if ($lCount !== 0) {
+									continue;
+								}
+								$objValue = $tmpObjValue;
+								$tmpObjValue = '';
+							}
+							$objValue = trim($objValue, ', ');
+							$subscribeLineKVArr = explode(':', $objValue, 2);
+							if (count($subscribeLineKVArr) === 2) {
+								$key = trim($subscribeLineKVArr[0], ', ');
+								$value = trim($subscribeLineKVArr[1], ', ');
+								$proxies[$proxiesCount][$key] = $value;
+							}
+						}
+					} else {
+						if ($lastProxiesKey !== null && isset($ruleSpace3IndentStr) && stripos($subscribeLine, $ruleSpace3IndentStr) === 0) {
+							$subscribeLineKV2Arr = explode(':', $trimSubscribeLine, 2);
+							if (count($subscribeLineKV2Arr) === 2) {
+								$proxies[$proxiesCount][$lastProxiesKey][$subscribeLineKV2Arr[0]] = trim($subscribeLineKV2Arr[1], ', ');
+							}
+							continue;
+						}
+						$subscribeLineKVArr = explode(':', $trimSubscribeLine, 2);
+						if (count($subscribeLineKVArr) === 2) {
+							$lastProxiesKey = trim($subscribeLineKVArr[0], ',{} -');
+							if (!empty($subscribeLineKVArr[1])) {
+								$proxies[$proxiesCount][$lastProxiesKey] = trim($subscribeLineKVArr[1], ', ');
+							}
+						}
+					}
+				} else if ($trimSubscribeLine[0] !== '-' && stripos($trimSubscribeLine, ':') !== false) {
+					$detectProxies = 0;
 					break;
 				}
 			}
 		}
-		if (stripos($subscribeURL, str_replace(array('{useReqFlag}', '&', '?'), '', $subscribeFlagParam)) === false) {
-			$subscribeURL .= str_replace('{useReqFlag}', $useReqFlag, $subscribeFlagParam);
-		}
 	}
-	$canCache = false;
-	$useCache = false;
 	if (SubscribeCache !== null) {
-		if (stripos($subscribeURL, 'http') !== false) {
-			$canCache = true;
-			$subscribeURLDomain = str_replace('.', '-', ParseDomain($subscribeURL));
-			$subscribeURLSHA1 = sha1($subscribeURL);
-			if (!empty($subscribeURLDomain) && !empty($subscribeURLSHA1)) {
-				$subscribeCacheFilename = "SubscribeCache/{$useReqFlag}_{$subscribeURLDomain}_{$subscribeURLSHA1}.txt";
-				if (is_file($subscribeCacheFilename) && ($cacheMTime = filemtime($subscribeCacheFilename)) !== false) {
-					if (($cacheMTime + SubscribeCache) < time()) {
-						unlink($subscribeCacheFilename);
-					} else {
-						$useCache = true;
-						$subscribeURL = $subscribeCacheFilename;
-					}
-				}
-			}
-		}
+		flock($lockRes, LOCK_UN);
+		fclose($lockRes);
+		@unlink('SubscribeCache/clash.lock');
 	}
-	$subscribeURLContent = @file($subscribeURL, 0, HTTPContext);
-	if (empty($subscribeURLContent)) {
-		continue;
-	}
-	if (!$useCache) {
-		$subscribeUserInfo = GetHTTPHeader('subscription-userinfo');
-		if (SubscribeUserInfoReturn && !empty($subscribeUserInfo) && (SubscribeUserInfoReturnAll || $subscribeURLCount === 1)) {
-			header($subscribeUserInfo, false);
-		}
-		if ($canCache) {
-			if (!empty($subscribeUserInfo)) {
-				array_unshift($subscribeURLContent, "{$subscribeUserInfo}\n");
-			}
-			file_put_contents($subscribeCacheFilename, $subscribeURLContent);
-		}
-	}
-	if (!in_array($reqFlag, SupportFlag)) {
-		// 不支持的 flag, 若订阅设置为 Allow Flag, 则直接转发任一原始响应.
-		if ($subscribeFlagParam !== null) {
-			die(implode($subscribeURLContent));
-		}
-		continue;
-	}
-	$objMode = false;
-	$lastProxiesKey = null;
-	foreach ($subscribeURLContent as $subscribeLine) {
-		if (empty($subscribeLine)) {
-			continue;
-		}
-		if (SubscribeUserInfoReturn && $useCache && (SubscribeUserInfoReturnAll || $subscribeURLCount === 1) && ($subscribeUserInfo = stristr($subscribeLine, 'subscription-userinfo')) !== false) {
-			header($subscribeUserInfo, false);
-			continue;
-		}
-		$trimSubscribeLine = trim($subscribeLine);
-		if ($detectProxies === -2 && $trimSubscribeLine === 'proxies:') {
-			// 抓住代理节点标志!
-			$detectProxies = -1;
-		} else if ($detectProxies === -1) {
-			if ($ruleSpaceIndent === 0 && (($spaceIndent = strspn($subscribeLine, ' ', 0, 8)) > 0)) {
-				$ruleSpaceIndent = $spaceIndent;
-				$ruleSpaceIndentStr = str_repeat(' ', $ruleSpaceIndent);
-				$ruleSpaceIndentStrWithoutMinus = '-' . str_repeat(' ', ($ruleSpaceIndent - 1));
-				$ruleSpace3IndentStr = str_repeat(' ', ($ruleSpaceIndent * 3));
-			}
-			if (!isset($ruleSpaceIndentStr) || stripos($subscribeLine, ($subscribeLine[0] === '-' ? $ruleSpaceIndentStrWithoutMinus : $ruleSpaceIndentStr)) === 0) {
-				if ($trimSubscribeLine[0] === '-') {
-					$proxiesCount++;
-					if (stripos($trimSubscribeLine, '{') !== false && stripos($trimSubscribeLine, '}') !== false) {
-						$objMode = true;
-					}
-				}
-				if ($objMode) {
-					$subscribeLineObjArr = explode(',', substr(substr(trim($trimSubscribeLine, '- '), 1), 0, -1));
-					$tmpObjValue = '';
-					$lCount = 0;
-					foreach ($subscribeLineObjArr as $objValue) {
-						if (($tmpLCount = substr_count($objValue, '{') - substr_count($objValue, '}')) !== 0) {
-							$lCount += $tmpLCount;
-							$tmpObjValue .= ", {$objValue}";
-							if ($lCount !== 0) {
-								continue;
-							}
-							$objValue = $tmpObjValue;
-							$tmpObjValue = '';
-						}
-						$objValue = trim($objValue, ', ');
-						$subscribeLineKVArr = explode(':', $objValue, 2);
-						if (count($subscribeLineKVArr) === 2) {
-							$key = trim($subscribeLineKVArr[0], ', ');
-							$value = trim($subscribeLineKVArr[1], ', ');
-							$proxies[$proxiesCount][$key] = $value;
-						}
-					}
-				} else {
-					if ($lastProxiesKey !== null && isset($ruleSpace3IndentStr) && stripos($subscribeLine, $ruleSpace3IndentStr) === 0) {
-						$subscribeLineKV2Arr = explode(':', $trimSubscribeLine, 2);
-						if (count($subscribeLineKV2Arr) === 2) {
-							$proxies[$proxiesCount][$lastProxiesKey][$subscribeLineKV2Arr[0]] = trim($subscribeLineKV2Arr[1], ', ');
-						}
-						continue;
-					}
-					$subscribeLineKVArr = explode(':', $trimSubscribeLine, 2);
-					if (count($subscribeLineKVArr) === 2) {
-						$lastProxiesKey = trim($subscribeLineKVArr[0], ',{} -');
-						if (!empty($subscribeLineKVArr[1])) {
-							$proxies[$proxiesCount][$lastProxiesKey] = trim($subscribeLineKVArr[1], ', ');
-						}
-					}
-				}
-			} else if ($trimSubscribeLine[0] !== '-' && stripos($trimSubscribeLine, ':') !== false) {
-				$detectProxies = 0;
-				break;
-			}
-		}
-	}
-}
-if (SubscribeCache !== null) {
-	flock($lockRes, LOCK_UN);
-	fclose($lockRes);
-	@unlink('SubscribeCache/clash.lock');
 }
 array_walk($proxies, function (&$value, $key) {
 	if (!NameFilter($value) || !TypeFilter($value) || !FlowFilter($value)) {
@@ -354,7 +359,7 @@ foreach ($proxies as $proxy) {
 	}
 }
 $proxiesStr = trim($proxiesStr);
-if (!SubscribeIgnoreError && $subscribeURLCount > 0 && empty($proxiesStr)) {
+if (!SubscribeIgnoreError && $subscribeURLCount > 0 && !$noSubscribeURLMode && empty($proxiesStr)) {
 	die();
 }
 $proxiesNameStr = implode(', ', $proxiesName);
@@ -367,6 +372,7 @@ foreach (SupportFlag as $supportFlag) {
 	}
 	$subscribeBaseRule = preg_replace('/.*# *?' . $supportFlag . ' *?$(\r)?(\n)/im', '', $subscribeBaseRule);
 }
+$subscribeBaseRule = preg_replace('/.*# *?feat: ?' . ($noSubscribeURLMode ? '!' : '') . '(NoSubscribeURL).*?$(\r)?(\r)?(\n)?(\n)/im', '', $subscribeBaseRule);
 $subscribeBaseRule = preg_replace('/# *?feat: ?!(?!(' . $reqFeat . ')).*?$/im', '', $subscribeBaseRule);
 $subscribeBaseRule = preg_replace('/.*# *?feat: ?!(' . $reqFeat . ').*?$(\r)?(\r)?(\n)?(\n)/im', '', $subscribeBaseRule);
 $subscribeBaseRule = preg_replace('/.*# *?feat: ?(?!(' . $reqFeat . ')).*?$(\r)?(\r)?(\n)?(\n)/im', '', $subscribeBaseRule);
