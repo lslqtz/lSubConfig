@@ -42,6 +42,16 @@ tun:
     udp-timeout: 900
     dns-hijack:
         - 'any:53'
+    route-exclude-address:
+        - '10.0.0.0/8'
+        - '100.64.0.0/10'
+        - '169.254.0.0/16'
+        - '172.16.0.0/12'
+        - '192.0.0.0/24'
+        - '192.168.0.0/16'
+        - 'fc00::/7'
+        - 'fe80::/10'
+        - '17.0.0.0/8'
 
 proxies:
     ----lPROXIES----
@@ -53,6 +63,7 @@ proxy-groups:
     #- { name: '⚖️负载均衡节点', type: 'load-balance', proxies: [----lPROXIESNAME_AUTO----], lazy: true, interval: 7200, tolerance: 300, timeout: 5000, benchmark-timeout: 5, strategy: 'round-robin', url: 'http://www.gstatic.com/generate_204', benchmark-url: 'http://www.gstatic.com/generate_204' }
     - { name: '🇺🇳海外被墙网站', type: 'select', proxies: ['🇺🇳全局出国节点', DIRECT, '♾️自动出国节点', ----lPROXIESNAME----], lazy: true, interval: 7200, timeout: 5000, benchmark-timeout: 5, url: 'http://www.gstatic.com/generate_204', benchmark-url: 'http://www.gstatic.com/generate_204' }
     - { name: '⚓️其它海外流量', type: 'select', proxies: ['🇺🇳全局出国节点', DIRECT, '♾️自动出国节点', ----lPROXIESNAME----], lazy: true, interval: 7200, timeout: 5000, benchmark-timeout: 5, url: 'http://www.gstatic.com/generate_204', benchmark-url: 'http://www.gstatic.com/generate_204' }
+    - { name: '🎮部分游戏流量', type: 'select', proxies: ['🇺🇳全局出国节点', DIRECT, '♾️自动出国节点', ----lPROXIESNAME----], lazy: true, interval: 7200, timeout: 5000, benchmark-timeout: 5, url: 'http://www.gstatic.com/generate_204', benchmark-url: 'http://www.gstatic.com/generate_204' }
     - { name: '🇺🇳海外流媒体', type: 'select', proxies: ['🇺🇳全局出国节点', DIRECT, '♾️自动出国节点', ----lPROXIESNAME----], lazy: true, interval: 7200, timeout: 5000, benchmark-timeout: 5, url: 'http://www.gstatic.com/generate_204', benchmark-url: 'http://www.gstatic.com/generate_204' }
     - { name: '🇺🇳Netflix', type: 'select', proxies: ['🇺🇳全局出国节点', DIRECT, '♾️自动出国节点', ----lPROXIESNAME----], lazy: true, interval: 7200, timeout: 5000, benchmark-timeout: 5, url: 'http://www.gstatic.com/generate_204', benchmark-url: 'http://www.gstatic.com/generate_204' }
     - { name: '🎮Sbeam', type: 'select', proxies: ['🇺🇳全局出国节点', DIRECT, '♾️自动出国节点', ----lPROXIESNAME----], lazy: true, interval: 7200, timeout: 5000, benchmark-timeout: 5, url: 'http://www.gstatic.com/generate_204', benchmark-url: 'http://www.gstatic.com/generate_204' }
@@ -262,6 +273,7 @@ rules:
     - 'DOMAIN-SUFFIX,openaiapi-site.azureedge.net,🇺🇳海外被墙网站'
     - 'DOMAIN-SUFFIX,openaicom.imgix.net,🇺🇳海外被墙网站'
     - 'DOMAIN-KEYWORD,openai,🇺🇳海外被墙网站'
+    - 'DOMAIN-SUFFIX,livekit.cloud,🇺🇳海外被墙网站'
     - 'IP-CIDR,24.199.123.28/32,🇺🇳海外被墙网站,no-resolve'
     - 'IP-CIDR,64.23.132.171/32,🇺🇳海外被墙网站,no-resolve'
     - 'IP-ASN,20473,🇺🇳海外被墙网站,no-resolve' # Stash
@@ -291,7 +303,8 @@ rules:
     - 'DOMAIN-SUFFIX,wxapp.tc.qq.com,DIRECT'
     - 'DOMAIN-SUFFIX,wxs.qq.com,DIRECT'
     - 'DOMAIN-SUFFIX,yun-hl.3g.qq.com,DIRECT'
-    - 'IP-ASN,132203,DIRECT,no-resolve'
+    - 'IP-ASN,132203,DIRECT,no-resolve' # Stash
+    - 'IP-ASN,132203,DIRECT,no-resolve' # Meta
 
     # Mihoyo
     - 'DOMAIN-SUFFIX,genshinimpact.com,DIRECT'
@@ -319,32 +332,32 @@ rules:
     - 'DOMAIN-SUFFIX,juequling.com,DIRECT'
 
     # PUBG: New State
-    - 'DOMAIN-SUFFIX,sendbird.com,🇺🇳海外被墙网站'
-    - 'DST-PORT,5000,🇺🇳海外被墙网站'
-    - 'DOMAIN-KEYWORD,new-state,🇺🇳海外被墙网站'
-    - 'DOMAIN-SUFFIX,pubg-ns-gate.com,🇺🇳海外被墙网站'
-    - 'DOMAIN-SUFFIX,xtrm-dev.io,🇺🇳海外被墙网站'
-    - 'DOMAIN-SUFFIX,enter-pubg-new-state.com,🇺🇳海外被墙网站'
-    - 'DOMAIN-SUFFIX,pubg.com,🇺🇳海外被墙网站'
+    - 'DOMAIN-SUFFIX,sendbird.com,🎮部分游戏流量'
+    #- 'DST-PORT,5000,🎮部分游戏流量'
+    - 'DOMAIN-KEYWORD,new-state,🎮部分游戏流量'
+    - 'DOMAIN-SUFFIX,pubg-ns-gate.com,🎮部分游戏流量'
+    - 'DOMAIN-SUFFIX,xtrm-dev.io,🎮部分游戏流量'
+    - 'DOMAIN-SUFFIX,enter-pubg-new-state.com,🎮部分游戏流量'
+    - 'DOMAIN-SUFFIX,pubg.com,🎮部分游戏流量'
 
     # Garena
-    - 'DOMAIN-SUFFIX,garena.co.id,🇺🇳海外被墙网站'
-    - 'DOMAIN-SUFFIX,garena.co.th,🇺🇳海外被墙网站'
-    - 'DOMAIN-SUFFIX,garena.com,🇺🇳海外被墙网站'
-    - 'DOMAIN-SUFFIX,garena.live,🇺🇳海外被墙网站'
-    - 'DOMAIN-SUFFIX,garena.my,🇺🇳海外被墙网站'
-    - 'DOMAIN-SUFFIX,garena.ph,🇺🇳海外被墙网站'
-    - 'DOMAIN-SUFFIX,garena.sg,🇺🇳海外被墙网站'
-    - 'DOMAIN-SUFFIX,garena.tv,🇺🇳海外被墙网站'
-    - 'DOMAIN-SUFFIX,garena.tw,🇺🇳海外被墙网站'
-    - 'DOMAIN-SUFFIX,garena.vn,🇺🇳海外被墙网站'
-    - 'DOMAIN-SUFFIX,garenanow.com,🇺🇳海外被墙网站'
-    - 'DOMAIN-SUFFIX,seagroup.com,🇺🇳海外被墙网站'
-    - 'DOMAIN-SUFFIX,avatargarenanow-a.akamaihd.net,🇺🇳海外被墙网站'
-    - 'DOMAIN-SUFFIX,cdngarenanow-a.akamaihd.net,🇺🇳海外被墙网站'
-    - 'DOMAIN-SUFFIX,dlmobilegarena-a.akamaihd.net,🇺🇳海外被墙网站'
-    - 'IP-ASN,131634,🇺🇳海外被墙网站,no-resolve' # Stash
-    - 'IP-ASN,131634,🇺🇳海外被墙网站,no-resolve' # Meta
+    - 'DOMAIN-SUFFIX,garena.co.id,🎮部分游戏流量'
+    - 'DOMAIN-SUFFIX,garena.co.th,🎮部分游戏流量'
+    - 'DOMAIN-SUFFIX,garena.com,🎮部分游戏流量'
+    - 'DOMAIN-SUFFIX,garena.live,🎮部分游戏流量'
+    - 'DOMAIN-SUFFIX,garena.my,🎮部分游戏流量'
+    - 'DOMAIN-SUFFIX,garena.ph,🎮部分游戏流量'
+    - 'DOMAIN-SUFFIX,garena.sg,🎮部分游戏流量'
+    - 'DOMAIN-SUFFIX,garena.tv,🎮部分游戏流量'
+    - 'DOMAIN-SUFFIX,garena.tw,🎮部分游戏流量'
+    - 'DOMAIN-SUFFIX,garena.vn,🎮部分游戏流量'
+    - 'DOMAIN-SUFFIX,garenanow.com,🎮部分游戏流量'
+    - 'DOMAIN-SUFFIX,seagroup.com,🎮部分游戏流量'
+    - 'DOMAIN-SUFFIX,avatargarenanow-a.akamaihd.net,🎮部分游戏流量'
+    - 'DOMAIN-SUFFIX,cdngarenanow-a.akamaihd.net,🎮部分游戏流量'
+    - 'DOMAIN-SUFFIX,dlmobilegarena-a.akamaihd.net,🎮部分游戏流量'
+    - 'IP-ASN,131634,🎮部分游戏流量,no-resolve' # Stash
+    - 'IP-ASN,131634,🎮部分游戏流量,no-resolve' # Meta
 
     - 'DOMAIN-SUFFIX,jpush.cn,DIRECT'
     - 'DOMAIN-SUFFIX,services.googleapis.cn,🇺🇳海外被墙网站'
