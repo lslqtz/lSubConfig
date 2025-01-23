@@ -377,15 +377,16 @@ foreach (SupportFlag as $supportFlag) {
 	$subscribeBaseRule = preg_replace('/.*# *?' . $supportFlag . ' *?$(\r)?(\n)/im', '', $subscribeBaseRule);
 }
 if ($noSubscribeURLMode) {
-	$subscribeBaseRule = preg_replace('/.*# *?feat: ?!(NoSubscribeURL).*?$(\r)?(\r)?(\n)?(\n)/im', '', $subscribeBaseRule);
-	$subscribeBaseRule = preg_replace('/# *?feat: ?(NoSubscribeURL).*?$/im', '', $subscribeBaseRule);
+	$subscribeBaseRule = preg_replace('/.*# *?feat: ?!(NoSubscribeURL).*$(\r)?(\n)/im', '', $subscribeBaseRule);
+	$subscribeBaseRule = preg_replace('/# *?feat: ?(NoSubscribeURL).*?( |$)/im', '', $subscribeBaseRule);
 } else {
-	$subscribeBaseRule = preg_replace('/.*# *?feat: ?(NoSubscribeURL).*?$(\r)?(\r)?(\n)?(\n)/im', '', $subscribeBaseRule);
-	$subscribeBaseRule = preg_replace('/# *?feat: ?!(NoSubscribeURL).*?$/im', '', $subscribeBaseRule);
+	$subscribeBaseRule = preg_replace('/.*# *?feat: ?(NoSubscribeURL).*$(\r)?(\n)/im', '', $subscribeBaseRule);
+	$subscribeBaseRule = preg_replace('/# *?feat: ?!(NoSubscribeURL).*?( |$)/im', '', $subscribeBaseRule);
 }
-$subscribeBaseRule = preg_replace('/# *?feat: ?!(?!(' . $reqFeat . ')).*?$/im', '', $subscribeBaseRule);
-$subscribeBaseRule = preg_replace('/.*# *?feat: ?!(' . $reqFeat . ').*?$(\r)?(\r)?(\n)?(\n)/im', '', $subscribeBaseRule);
-$subscribeBaseRule = preg_replace('/.*# *?feat: ?(?!(' . $reqFeat . ')).*?$(\r)?(\r)?(\n)?(\n)/im', '', $subscribeBaseRule);
+$subscribeBaseRule = preg_replace('/# *?feat: ?!(?!(' . $reqFeat . ')).*?( |$)/im', '', $subscribeBaseRule);
+$subscribeBaseRule = preg_replace('/.*# *?feat: ?!(' . $reqFeat . ').*$(\r)?(\n)/im', '', $subscribeBaseRule);
+$subscribeBaseRule = preg_replace('/.*# *?feat: ?(?!(' . $reqFeat . ')).*(\r)?(\n)/im', '', $subscribeBaseRule);
+$subscribeBaseRule = preg_replace('/ *$/im', '', $subscribeBaseRule);
 if (empty($proxiesNameStr)) {
 	$subscribeBaseRule = preg_replace('/, ?' . SubscribeBaseRuleProxiesNameTag . '/m', '', $subscribeBaseRule);
 }
