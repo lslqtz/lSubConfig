@@ -15,12 +15,14 @@ dns:
     enable: true
     ipv6: true
     listen: '127.0.0.1:5353'
-    enhanced-mode: redir-host
+    enhanced-mode: 'redir-host'
     use-hosts: true
+    follow-rule: false
     nameserver: ['system']
+    udp-nameserver: ['system']
     default-nameserver: ['119.29.29.29']
     #fallback: ['https://dns.google/dns-query']
-    #fallback-filter: { geoip: true, geoip-code: CN, ipcidr: [240.0.0.0/4] }
+    #fallback-filter: { geoip: true, geoip-code: 'CN', ipcidr: ['240.0.0.0/4'] }
 
 sniffer:
     enable: true
@@ -52,6 +54,10 @@ tun:
         - 'fc00::/7'
         - 'fe80::/10'
         - '17.0.0.0/8'
+        - '2a01:b747::/32'
+        - '2a01:b740::/32'
+        - '2620:149::/32'
+        - '2403:300::/32'
 
 proxies:
     ----lPROXIES----
