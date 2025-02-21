@@ -102,6 +102,13 @@ rules:
     # Apple ID
     #- 'DOMAIN-SUFFIX,gsa.apple.com,🇺🇳海外被墙网站'
 
+    # Apple Intelligence (ChatGPT)
+    - 'DOMAIN-SUFFIX,apple-relay.apple.com,🇺🇳海外被墙网站'
+    - 'DOMAIN-SUFFIX,apple-relay.akamaized.net,🇺🇳海外被墙网站'
+    - 'DOMAIN-SUFFIX,apple-relay.cloudflare.com,🇺🇳海外被墙网站'
+    - 'DOMAIN-SUFFIX,apple-relay.fastly-edge.com,🇺🇳海外被墙网站'
+    - 'DOMAIN-SUFFIX,apple-relay.mask.apple-dns.net,🇺🇳海外被墙网站'
+
     # Apple Map
     - 'DOMAIN-SUFFIX,ls.apple.com,DIRECT'
     - 'DOMAIN-SUFFIX,gs-loc.apple.com,DIRECT'
@@ -121,8 +128,11 @@ rules:
     #- 'DOMAIN-SUFFIX,canary.mask.apple-dns.net,🇺🇳海外被墙网站'
     #- 'DOMAIN-SUFFIX,mask-h2.icloud.com,🇺🇳海外被墙网站'
     #- 'DOMAIN-SUFFIX,mask-t.apple-dns.net,🇺🇳海外被墙网站'
+    - 'DOMAIN-SUFFIX,apple-relay.apple.com,DIRECT'
+    - 'DOMAIN-SUFFIX,apple-relay.akamaized.net,DIRECT'
     - 'DOMAIN-SUFFIX,apple-relay.cloudflare.com,DIRECT'
     - 'DOMAIN-SUFFIX,apple-relay.fastly-edge.com,DIRECT'
+    - 'DOMAIN-SUFFIX,apple-relay.mask.apple-dns.net,DIRECT'
 
     # Apple
     - 'DOMAIN-SUFFIX,apple,DIRECT'
