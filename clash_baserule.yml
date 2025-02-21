@@ -36,7 +36,7 @@ sniffer:
         - 'Mijia Cloud'
 
 tun:
-    enable: false
+    enable: ----lEnableTUN----
     gso: true
     auto-route: true
     auto-detect-interface: true

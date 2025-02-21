@@ -162,6 +162,7 @@ if (SubscribeCache !== null && !$noSubscribeURLMode) {
 }
 $allowLAN = ((isset($_GET['allow_lan']) && $_GET['allow_lan'] === 'true') ? 'true' : 'false');
 $bindAddress = ((!empty($_GET['bind_address'])) ? trim(strtolower($_GET['bind_address'])) : '127.0.0.1');
+$enableTUN = ((isset($_GET['enable_tun']) && $_GET['enable_tun'] === 'true') ? 'true' : 'false');
 $useReqFlag = ((isset(RewriteFlag[$reqFlag])) ? RewriteFlag[$reqFlag] : $reqFlag);
 $hqMode = ((isset($_GET['hq']) && $_GET['hq'] === 'true') ? true : false);
 if (!empty($_GET['mode'])) {
@@ -396,7 +397,7 @@ if (empty($proxiesNameLowLatencyStr)) {
 if (empty($proxiesNameCNStr)) {
 	$subscribeBaseRule = preg_replace('/, ?' . SubscribeBaseRuleProxiesNameTag_CN . '/m', '', $subscribeBaseRule);
 }
-$subscribeFinalRule = str_replace(array(SubscribeBaseRuleProxiesTag, SubscribeBaseRuleProxiesNameTag, SubscribeBaseRuleProxiesNameTag_Auto, SubscribeBaseRuleProxiesNameTag_LowLatency, SubscribeBaseRuleProxiesNameTag_CN, '----lAllowLAN----', '----lBindAddress----'), array($proxiesStr, $proxiesNameStr, $proxiesNameAutoStr, $proxiesNameLowLatencyStr, $proxiesNameCNStr, $allowLAN, "'{$bindAddress}'"), $subscribeBaseRule);
+$subscribeFinalRule = str_replace(array(SubscribeBaseRuleProxiesTag, SubscribeBaseRuleProxiesNameTag, SubscribeBaseRuleProxiesNameTag_Auto, SubscribeBaseRuleProxiesNameTag_LowLatency, SubscribeBaseRuleProxiesNameTag_CN, '----lAllowLAN----', '----lBindAddress----', '----lEnableTUN----'), array($proxiesStr, $proxiesNameStr, $proxiesNameAutoStr, $proxiesNameLowLatencyStr, $proxiesNameCNStr, $allowLAN, "'{$bindAddress}'", $enableTUN), $subscribeBaseRule);
 $targetHost = (isset($_GET['host']) ? trim(strtolower($_GET['host'])) : 'p11.douyinpic.com');
 //$subscribeFinalRule = str_replace('tms.dingtalk.com', '----lPROXIESHOST----', $subscribeFinalRule);
 $subscribeFinalRule = str_replace('----lPROXIESHOST----', $targetHost, $subscribeFinalRule);
