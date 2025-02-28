@@ -139,7 +139,23 @@ if (PHP_SAPI !== 'cli') {
 $keyPolicy = (($key !== null) ? SubscribeKey[$key] : null);
 $noSubscribeURLMode = ($keyPolicy !== null && isset($keyPolicy['NoSubscribeURL']) && $keyPolicy['NoSubscribeURL'] === true);
 $reqFlag = ((!empty($_GET['flag'])) ? trim(strtolower($_GET['flag'])) : DefaultFlag);
-$reqFeat = ((!empty($_GET['feat']) && ctype_alnum($_GET['feat'])) ? trim(strtolower($_GET['feat'])) : 'Default');
+$reqFeats = array();
+if (!empty($_GET['feat'])) {
+	$reqFeats = explode(',', $_GET['feat']);
+	foreach ($reqFeats as $key => &$reqFeat) {
+		if (!ctype_alnum($reqFeat)) {
+			unset($reqFeats[$key]);
+			continue;
+		}
+		$reqFeat = trim(strtolower($reqFeat));
+	}
+	usort($reqFeats, function ($a, $b) {
+		return (strlen($b) - strlen($a));
+	});
+}
+if (count($reqFeats) <= 0) {
+	$reqFeats[] = 'Default';
+}
 if (!in_array($reqFlag, RecognizeFlag)) {
 	// 不认识的 flag, 直接拒绝响应.
 	http_response_code(403);
@@ -384,9 +400,11 @@ if ($noSubscribeURLMode) {
 	$subscribeBaseRule = preg_replace('/.*# *?feat: ?(NoSubscribeURL).*$(\r)?(\n)/im', '', $subscribeBaseRule);
 	$subscribeBaseRule = preg_replace('/# *?feat: ?!(NoSubscribeURL).*?( |$)/im', '', $subscribeBaseRule);
 }
-$subscribeBaseRule = preg_replace('/# *?feat: ?!(?!(' . $reqFeat . ')).*?( |$)/im', '', $subscribeBaseRule);
-$subscribeBaseRule = preg_replace('/.*# *?feat: ?!(' . $reqFeat . ').*$(\r)?(\n)/im', '', $subscribeBaseRule);
-$subscribeBaseRule = preg_replace('/.*# *?feat: ?(?!(' . $reqFeat . ')).*(\r)?(\n)/im', '', $subscribeBaseRule);
+foreach ($reqFeats as $reqFeat) {
+	$subscribeBaseRule = preg_replace('/# *?feat: ?!(?!(' . $reqFeat . ')).*?( |$)/im', '', $subscribeBaseRule);
+	$subscribeBaseRule = preg_replace('/.*# *?feat: ?!(' . $reqFeat . ').*$(\r)?(\n)/im', '', $subscribeBaseRule);
+	$subscribeBaseRule = preg_replace('/.*# *?feat: ?(?!(' . $reqFeat . ')).*(\r)?(\n)/im', '', $subscribeBaseRule);
+}
 $subscribeBaseRule = preg_replace('/ *$/im', '', $subscribeBaseRule);
 if (empty($proxiesNameStr)) {
 	$subscribeBaseRule = preg_replace('/, ?' . SubscribeBaseRuleProxiesNameTag . '/m', '', $subscribeBaseRule);
