@@ -21,8 +21,8 @@ define('SubscribeIgnoreKeyword', array('套餐', '到期', '流量', '重置', '
 define('SubscribeUserInfoReturn', true);
 define('SubscribeUserInfoReturnAll', false);
 define('DefaultFlag', 'clash');
-define('SupportFlag', array('clash', 'meta', 'stash'));
-define('RewriteFlag', array('stash' => 'meta')); // Support first before rewriting.
+define('SupportFlag', array('clash', 'meta', 'stash', 'stash2'));
+define('RewriteFlag', array('stash' => 'meta', 'stash2' => 'meta')); // Support first before rewriting.
 define('RecognizeFlag', array_merge(SupportFlag, array('surge', 'sing-box', 'shadowrocket')));
 define('SubscribeURL', array('https://example1.com/api/v1/client/subscribe?token=a1b2c3d4e5f6g7h8i9' => null, 'https://example2.com/api/v1/client/subscribe?token=a1b2c3d4e5f6g7h8i9' => '&flag={useReqFlag}')); // (URL or Filename) => (FlagParam or null).
 function ParseDomain(string $url): string {
@@ -120,7 +120,7 @@ function AddProxyNameToArr(array &$value) {
 	// 在 LowLatency 节点列表的不视为 CN 节点.
 	if (!in_array($value['name'], $proxiesNameLowLatency) && (stripos($value['name'], '🇨🇳') !== false || stripos($value['name'], 'CN') !== false || stripos($value['name'], '中国') !== false)) {
 		$proxiesNameCN[] = $value['name'];
-		if ($reqFlag === 'stash') {
+		if ($reqFlag === 'stash' || $reqFlag === 'stash2') {
 			$value['url'] = "'http://baidu.com'";
 			$value['benchmark-url'] = "'http://baidu.com'";
 		}
@@ -188,8 +188,7 @@ if (!empty($_GET['mode'])) {
 	$subscribeBaseRuleMode = 'normal';
 	$subscribeBaseRuleFilename = str_replace('-{ruleMode}', '', SubscribeBaseRuleFilename);
 }
-$subscribeBaseRuleMode[0] = strtoupper($subscribeBaseRuleMode[0]);
-if ($subscribeBaseRuleMode === 'Relay' && $noSubscribeURLMode) {
+if ($subscribeBaseRuleMode === 'relay' && $noSubscribeURLMode) {
 	http_response_code(404);
 	die("Bad permission.\n");
 }
