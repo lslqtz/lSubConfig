@@ -103,6 +103,7 @@ rules:
     #- 'DOMAIN-SUFFIX,gsa.apple.com,🇺🇳海外被墙网站'
 
     # Apple Intelligence (ChatGPT)
+    - 'DOMAIN-SUFFIX,cp4.cloudflare.com,🇺🇳海外被墙网站'
     - 'DOMAIN-SUFFIX,apple-relay.apple.com,🇺🇳海外被墙网站'
     - 'DOMAIN-SUFFIX,apple-relay.akamaized.net,🇺🇳海外被墙网站'
     - 'DOMAIN-SUFFIX,apple-relay.cloudflare.com,🇺🇳海外被墙网站'
