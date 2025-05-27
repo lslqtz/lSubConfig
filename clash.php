@@ -399,11 +399,35 @@ if ($noSubscribeURLMode) {
 	$subscribeBaseRule = preg_replace('/.*# *?feat: ?(NoSubscribeURL).*$(\r)?(\n)/im', '', $subscribeBaseRule);
 	$subscribeBaseRule = preg_replace('/# *?feat: ?!(NoSubscribeURL).*?( |$)/im', '', $subscribeBaseRule);
 }
-foreach ($reqFeats as $reqFeat) {
-	$subscribeBaseRule = preg_replace('/# *?feat: ?!(?!(' . $reqFeat . ')).*?( |$)/im', '', $subscribeBaseRule);
-	$subscribeBaseRule = preg_replace('/.*# *?feat: ?!(' . $reqFeat . ').*$(\r)?(\n)/im', '', $subscribeBaseRule);
-	$subscribeBaseRule = preg_replace('/.*# *?feat: ?(?!(' . $reqFeat . ')).*(\r)?(\n)/im', '', $subscribeBaseRule);
-}
+$subscribeBaseRule = preg_replace_callback(
+	'/.*# *?feat: ?(.*)$(\r)?(\n)/im',
+	function ($matches) use ($reqFeats) {
+		if (count($matches) >= 2) {
+			$rawFeats = array_map('trim', explode(',', strtolower($matches[1])));
+            $linePositiveFeats = [];
+            $lineNegativeFeats = [];
+            foreach ($rawFeats as $feat) {
+                if (substr($feat, 0, 1) !== '!') {
+                    $linePositiveFeats[] = $feat;
+                } else {
+                    $lineNegativeFeats[] = substr($feat, 1);
+                }
+            }
+            if ($reqFeats[0] !== 'Default') {
+            	if (count($lineNegativeFeats) > 0 && array_intersect($reqFeats, $lineNegativeFeats)) {
+                	return '';
+                }
+	            if (count($linePositiveFeats) > 0 && !array_intersect($reqFeats, $linePositiveFeats)) {
+	            	return '';
+	            }
+            } else if (count($linePositiveFeats) > 0) {
+            	return '';
+            }
+		}
+		return $matches[0];
+	},
+	$subscribeBaseRule
+);
 $subscribeBaseRule = preg_replace('/ *$/im', '', $subscribeBaseRule);
 if (empty($proxiesNameStr)) {
 	$subscribeBaseRule = preg_replace('/, ?' . SubscribeBaseRuleProxiesNameTag . '/m', '', $subscribeBaseRule);
