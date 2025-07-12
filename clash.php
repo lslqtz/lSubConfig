@@ -143,7 +143,7 @@ $reqFeats = array();
 if (!empty($_GET['feat'])) {
 	$reqFeats = explode(',', $_GET['feat']);
 	foreach ($reqFeats as $key => &$reqFeat) {
-		if (!ctype_alnum($reqFeat)) {
+		if (!ctype_alnum(str_replace('!', '', $reqFeat))) {
 			unset($reqFeats[$key]);
 			continue;
 		}
@@ -153,7 +153,7 @@ if (!empty($_GET['feat'])) {
 		return (strlen($b) - strlen($a));
 	});
 }
-if (count($reqFeats) <= 0) {
+if (count($reqFeats) <= 0) { // 包括 feat:NoSubscribeURL.
 	$reqFeats[] = 'Default';
 }
 if (!in_array($reqFlag, RecognizeFlag)) {
@@ -393,11 +393,13 @@ foreach (SupportFlag as $supportFlag) {
 	$subscribeBaseRule = preg_replace('/.*# *?' . $supportFlag . ' *?$(\r)?(\n)/im', '', $subscribeBaseRule);
 }
 if ($noSubscribeURLMode) {
-	$subscribeBaseRule = preg_replace('/.*# *?feat: ?!(NoSubscribeURL).*$(\r)?(\n)/im', '', $subscribeBaseRule);
-	$subscribeBaseRule = preg_replace('/# *?feat: ?(NoSubscribeURL).*?( |$)/im', '', $subscribeBaseRule);
+	$reqFeats[] = strtolower('NoSubscribeURL');
+	//$subscribeBaseRule = preg_replace('/.*# *?feat: ?!(NoSubscribeURL).*$(\r)?(\n)/im', '', $subscribeBaseRule);
+	//$subscribeBaseRule = preg_replace('/# *?feat: ?(NoSubscribeURL).*?( |$)/im', '', $subscribeBaseRule);
 } else {
-	$subscribeBaseRule = preg_replace('/.*# *?feat: ?(NoSubscribeURL).*$(\r)?(\n)/im', '', $subscribeBaseRule);
-	$subscribeBaseRule = preg_replace('/# *?feat: ?!(NoSubscribeURL).*?( |$)/im', '', $subscribeBaseRule);
+	$reqFeats[] = strtolower('!NoSubscribeURL');
+	//$subscribeBaseRule = preg_replace('/.*# *?feat: ?(NoSubscribeURL).*$(\r)?(\n)/im', '', $subscribeBaseRule);
+	//$subscribeBaseRule = preg_replace('/# *?feat: ?!(NoSubscribeURL).*?( |$)/im', '', $subscribeBaseRule);
 }
 $subscribeBaseRule = preg_replace_callback(
 	'/.*# *?feat: ?(.*)$(\r)?(\n)/im',
@@ -413,14 +415,10 @@ $subscribeBaseRule = preg_replace_callback(
                     $lineNegativeFeats[] = substr($feat, 1);
                 }
             }
-            if ($reqFeats[0] !== 'Default') {
-            	if (count($lineNegativeFeats) > 0 && array_intersect($reqFeats, $lineNegativeFeats)) {
-                	return '';
-                }
-	            if (count($linePositiveFeats) > 0 && !array_intersect($reqFeats, $linePositiveFeats)) {
-	            	return '';
-	            }
-            } else if (count($linePositiveFeats) > 0) {
+        	if (count($lineNegativeFeats) > 0 && array_intersect($reqFeats, $lineNegativeFeats)) {
+            	return '';
+            }
+            if (count($linePositiveFeats) > 0 && !array_intersect($reqFeats, $linePositiveFeats)) {
             	return '';
             }
 		}
