@@ -388,7 +388,7 @@ $proxiesNameAutoStr = ((count($proxiesNameAuto) > 0) ? implode(', ', $proxiesNam
 $proxiesNameLowLatencyStr = implode(', ', $proxiesNameLowLatency);
 $proxiesNameCNStr = implode(', ', $proxiesNameCN);
 foreach (SupportFlag as $supportFlag) {
-	if ($reqFlag === $supportFlag) {
+	if (str_contains($reqFlag, $supportFlag)) {
 		continue;
 	}
 	$subscribeBaseRule = preg_replace('/.*# *?' . $supportFlag . ' *?$(\r)?(\n)/im', '', $subscribeBaseRule);
