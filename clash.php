@@ -204,6 +204,7 @@ $proxiesNameAuto = array();
 $proxiesNameLowLatency = array();
 $proxiesNameCN = array();
 $subscribeURLCount = (count(SubscribeURL));
+$subscribeBaseRuleMode[0] = strtoupper($subscribeBaseRuleMode[0]);
 header('Content-Disposition: attachment; filename="Subscribe (' .  $subscribeBaseRuleMode . ')"');
 header('profile-update-interval: ' . SubscribeUpdateInterval);
 if (!$noSubscribeURLMode) {
