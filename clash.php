@@ -438,8 +438,10 @@ if (empty($proxiesNameCNStr)) {
 	$subscribeBaseRule = preg_replace('/, ?' . SubscribeBaseRuleProxiesNameTag_CN . '/m', '', $subscribeBaseRule);
 }
 $subscribeFinalRule = str_replace(array(SubscribeBaseRuleProxiesTag, SubscribeBaseRuleProxiesNameTag, SubscribeBaseRuleProxiesNameTag_Auto, SubscribeBaseRuleProxiesNameTag_LowLatency, SubscribeBaseRuleProxiesNameTag_CN, '----lAllowLAN----', '----lBindAddress----', '----lEnableTUN----'), array($proxiesStr, $proxiesNameStr, $proxiesNameAutoStr, $proxiesNameLowLatencyStr, $proxiesNameCNStr, $allowLAN, "'{$bindAddress}'", $enableTUN), $subscribeBaseRule);
-$targetHost = (isset($_GET['host']) ? trim(strtolower($_GET['host'])) : 'p11.douyinpic.com');
-//$subscribeFinalRule = str_replace('tms.dingtalk.com', '----lPROXIESHOST----', $subscribeFinalRule);
-$subscribeFinalRule = str_replace('----lPROXIESHOST----', $targetHost, $subscribeFinalRule);
+$targetHost = (isset($_GET['host']) ? trim(strtolower($_GET['host'])) : null);
+if ($targetHost !== null) {
+	$subscribeFinalRule = str_replace('tms.dingtalk.com', '----lPROXIESHOST----', $subscribeFinalRule);
+	$subscribeFinalRule = str_replace('----lPROXIESHOST----', $targetHost, $subscribeFinalRule);
+}
 echo $subscribeFinalRule;
 ?>
